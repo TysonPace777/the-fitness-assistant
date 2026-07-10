@@ -1,4 +1,5 @@
 # the-fitness-assistant
+
 This project will be a fitness assistant for users looking for a better free-to-use experience than popular fitness app options.
 
 (Tyson's Quote)
@@ -9,3 +10,6 @@ Some people can read War and Peace and come away thinking it's a simple adventur
 
 (Jaime's Quote)
 "Success starts with every challenge, not from the conform zone"
+
+(Pastor's Quote)
+"Small, consistent steps taken every day lead to lasting strength—in fitness, in learning, and in life."

@@ -1,0 +1,36 @@
+# Build results
+[Bb]in/
+[Oo]bj/
+
+# Development settings / secrets
+appsettings.Development.json
+.env
+.env.*
+
+# User secrets
+**/secrets.json
+
+# Visual Studio
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# VS Code
+.vscode/
+
+# Rider
+.idea/
+
+# SQLite databases (local development)
+*.db
+*.sqlite
+*.sqlite3
+
+# Logs
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db

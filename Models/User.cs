@@ -1,5 +1,5 @@
 using System.ComponentModel.DataAnnotations;
-namespace SunsetSchedule.Models;
+namespace the_fitness_assistant.Models;
 
 public class User
 {

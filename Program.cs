@@ -1,6 +1,12 @@
+using Microsoft.EntityFrameworkCore;
+using the_fitness_assistant.Data;
 using the_fitness_assistant.Components;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddDbContext<ApplicationDbContext>(options =>
+    options.UseNpgsql(
+        builder.Configuration.GetConnectionString("DefaultConnection")));
 
 // Add services to the container.
 builder.Services.AddRazorComponents()

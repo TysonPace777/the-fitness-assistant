@@ -1,0 +1,59 @@
+# Build results
+[Bb]in/
+[Oo]bj/
+
+# Build output
+bin/
+obj/
+
+# Development settings
+appsettings.Development.json
+
+# Visual Studio
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# VS Code
+.vscode/
+.vs/
+
+# Rider
+.idea/
+
+# User-specific files
+*.user
+*.rsuser
+
+# Entity Framework migrations? 
+# DO NOT ignore migrations!
+# Migrations should be committed.
+
+# SQLite databases (local development)
+*.db
+*.sqlite
+*.sqlite3
+
+# Environment files
+.env
+.env.*
+
+# User secrets
+**/secrets.json
+secrets.json
+
+# Environment variables
+.env
+.env.*
+
+# ASP.NET Core generated files
+appsettings.Development.json
+
+# Logs
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db

@@ -1,3 +1,7 @@
+# Environment variables
+.env
+client_secret_933448224128-45a7ilc84ctau2d8fsrae72puvmkkkh4.apps.googleusercontent.com.json
+
 # Build results
 [Bb]in/
 [Oo]bj/

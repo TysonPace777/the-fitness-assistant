@@ -12,7 +12,7 @@ using the_fitness_assistant.Data;
 namespace thefitnessassistant.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260711231156_InitialCreate")]
+    [Migration("20260714220913_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />

@@ -48,11 +48,25 @@ public class UserService
         _context.Users.Add(user);
 
         Console.WriteLine("Saving new user...");
-        
+
         await _context.SaveChangesAsync();
 
         Console.WriteLine("User saved!");
 
         return user;
+    }
+
+    public async Task<User?> GetUserByPrincipalAsync(ClaimsPrincipal principal)
+    {
+        var email = principal.FindFirst(ClaimTypes.Email)?.Value;
+
+        if (string.IsNullOrEmpty(email))
+        {
+            return null;
+        }
+
+
+        return await _context.Users
+            .FirstOrDefaultAsync(u => u.Email == email);
     }
 }

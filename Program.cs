@@ -19,6 +19,9 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 // Add User Service that checks if email exists in users table in db for the registered/logged in user
 builder.Services.AddScoped<UserService>();
 
+// This Seeder service auto fills the users account with data for demo purposes
+builder.Services.AddScoped<DemoDataSeeder>();
+
 // Add services to the container.
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
@@ -81,18 +84,19 @@ app.MapPost("/logout", async (HttpContext httpContext) =>
     return Results.Redirect("/");
 });
 
-// This is where Login redirects so that after authentication/registration success a user entry in the users table is automatically created
+// This is where Login redirects so that after authentication/registration success a user entry in the users table is automatically created.  This also auto runs the database seeder when it detects a new user has been added.
 app.MapGet("/auth-success", async (
     HttpContext context,
-    UserService userService) =>
+    UserService userService,
+    DemoDataSeeder demoDataSeeder) =>
 {
     Console.WriteLine("AUTH-SUCCESS ENDPOINT HIT");
 
-    Console.WriteLine($"Authenticated: {context.User.Identity?.IsAuthenticated}");
-    Console.WriteLine($"Name: {context.User.Identity?.Name}");
-    Console.WriteLine($"Email: {context.User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value}");
+    var user = await userService.EnsureUserExistsAsync(
+        context.User
+    );
 
-    await userService.EnsureUserExistsAsync(context.User);
+    await demoDataSeeder.SeedForUserAsync(user);
 
     return Results.Redirect("/");
 });

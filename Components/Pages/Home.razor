@@ -1,9 +1,112 @@
 ﻿@page "/"
-@rendermode InteractiveServer
 
-<PageTitle>Home</PageTitle>
+@using Microsoft.EntityFrameworkCore
+@using Microsoft.AspNetCore.Components.Authorization
+@using the_fitness_assistant.Models
 
-<h1>Hello, world!</h1>
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject UserService UserService
+@inject ApplicationDbContext DbContext
+
+<PageTitle>Dashboard</PageTitle>
 
 
-Welcome to your new app.
+<h1>Fitness Dashboard</h1>
+
+
+@if (currentUser == null)
+{
+    <p>Loading...</p>
+}
+else
+{
+    <h2>Welcome, @currentUser.DisplayName!</h2>
+
+    <div>
+        <h3>Profile</h3>
+
+        <p>
+            Height: @currentUser.Height
+        </p>
+
+        <p>
+            Weight: @currentUser.Weight
+        </p>
+
+        <p>
+            Age: @currentUser.Age
+        </p>
+    </div>
+
+
+    <div>
+        <h3>Calorie Goal</h3>
+
+        @if (goal != null)
+        {
+            <p>
+                @goal.GoalType:
+                @goal.DailyCalories calories/day
+            </p>
+        }
+        else
+        {
+            <p>No calorie goal found.</p>
+        }
+
+    </div>
+
+
+    <div>
+        <h3>Recent Food Logs</h3>
+
+        @foreach (var log in foodLogs)
+        {
+            <p>
+                @log.LogDate.ToShortDateString()
+                -
+                @log.MealType:
+                @log.Food.Name
+                (@log.Food.Calories calories)
+            </p>
+        }
+
+    </div>
+}
+
+
+@code {
+
+    private User? currentUser;
+    private CalorieGoal? goal;
+    private List<FoodLogEntry> foodLogs = new();
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState =
+            await AuthenticationStateProvider.GetAuthenticationStateAsync();
+
+
+        currentUser =
+            await UserService.GetUserByPrincipalAsync(authState.User);
+
+
+        if (currentUser != null)
+        {
+            goal =
+                await DbContext.CalorieGoals
+                    .FirstOrDefaultAsync(
+                        c => c.UserId == currentUser.UserId);
+
+
+            foodLogs =
+                await DbContext.FoodLogEntries
+                    .Include(f => f.Food)
+                    .Where(f => f.UserId == currentUser.UserId)
+                    .OrderByDescending(f => f.LogDate)
+                    .Take(5)
+                    .ToListAsync();
+        }
+    }
+}

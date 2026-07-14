@@ -1,0 +1,29 @@
+@using Microsoft.AspNetCore.Components.Authorization
+
+<AuthorizeView>
+    <Authorized>
+        <p style="color:white;">
+            Logged in as:
+            @context.User.Identity?.Name
+        </p>
+
+        <p style="color:white;">
+            Authentication type:
+            @context.User.Identity?.AuthenticationType
+        </p>
+
+        <form action="/logout" method="post">
+            <button class="btn btn-link">
+                Logout
+            </button>
+        </form>
+    </Authorized>
+
+    <NotAuthorized>
+        <p style="color:white;">You are not logged in.</p>
+
+        <a href="/login">
+            Login with Google
+        </a>
+    </NotAuthorized>
+</AuthorizeView>

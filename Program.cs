@@ -4,6 +4,7 @@ using the_fitness_assistant.Components;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authentication;
+using the_fitness_assistant.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -14,6 +15,9 @@ builder.Services.AddCascadingAuthenticationState();
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseNpgsql(
         builder.Configuration.GetConnectionString("DefaultConnection")));
+
+// Add User Service that checks if email exists in users table in db for the registered/logged in user
+builder.Services.AddScoped<UserService>();
 
 // Add services to the container.
 builder.Services.AddRazorComponents()
@@ -64,14 +68,32 @@ app.MapRazorComponents<App>()
 
 app.MapGet("/login", (string? returnUrl) =>
 {
+    Console.WriteLine("LOGIN ENDPOINT HIT");
+
     return Results.Challenge(
-        new AuthenticationProperties { RedirectUri = returnUrl ?? "/" },
+        new AuthenticationProperties { RedirectUri = "/auth-success" },
         new[] { GoogleDefaults.AuthenticationScheme });
 });
 
 app.MapPost("/logout", async (HttpContext httpContext) =>
 {
     await httpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+    return Results.Redirect("/");
+});
+
+// This is where Login redirects so that after authentication/registration success a user entry in the users table is automatically created
+app.MapGet("/auth-success", async (
+    HttpContext context,
+    UserService userService) =>
+{
+    Console.WriteLine("AUTH-SUCCESS ENDPOINT HIT");
+
+    Console.WriteLine($"Authenticated: {context.User.Identity?.IsAuthenticated}");
+    Console.WriteLine($"Name: {context.User.Identity?.Name}");
+    Console.WriteLine($"Email: {context.User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value}");
+
+    await userService.EnsureUserExistsAsync(context.User);
+
     return Results.Redirect("/");
 });
 

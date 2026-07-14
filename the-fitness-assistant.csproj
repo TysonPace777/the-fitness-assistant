@@ -6,8 +6,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>the-fitness-assistant</RootNamespace>
     <AssemblyName>$(AssemblyName.Replace(' ', '_'))</AssemblyName>
-    <UserSecretsId>0b2d0049-244b-42a8-91df-b0e670c0af17</UserSecretsId>
-    
+    <UserSecretsId>the-fitness-assistant-google-auth</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>

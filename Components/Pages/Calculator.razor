@@ -1,0 +1,129 @@
+@page "/calculator"
+
+@rendermode InteractiveServer
+
+<PageTitle>Calorie Calculator</PageTitle>
+
+<h1>Calorie Calculator</h1>
+
+<p>Find how many calories are needed to gain/maintain/lose weight</p>
+
+<EditForm Model="@input" OnValidSubmit="@Calculate" FormName="CalorieCalculator">
+
+    <div>
+        <label>Gender:</label>
+        <InputSelect @bind-Value="input.Gender">
+            <option value="Male">Male</option>
+            <option value="Female">Female</option>
+        </InputSelect>
+    </div>
+
+    <div>
+        <label>Weight (lbs):</label>
+        <InputNumber @bind-Value="input.Weight" />
+    </div>
+
+    <div>
+        <label>Height (feet):</label>
+        <InputNumber @bind-Value="input.Feet" />
+    </div>
+
+    <div>
+        <label>Height (inches):</label>
+        <InputNumber @bind-Value="input.Inches" />
+    </div>
+
+    <div>
+        <label>Age (years):</label>
+        <InputNumber @bind-Value="input.Age" />
+    </div>
+
+    <div>
+        <label>Choose Activity Level:</label>
+        <InputSelect @bind-Value="input.ActivityLevel">
+            <option value="1">Low Activity (Little to no planned exercise)</option>
+            <option value="2">Medium Activity (Exercise 2-4 days per week)</option>
+            <option value="3">High Activity (Exercise 5-7 days per week or an active job)</option>
+        </InputSelect>
+    </div>
+    
+    <button type="submit">Calculate</button>
+</EditForm>
+
+@if (result != null)
+{
+    <hr />
+
+    <h3>Daily Calories</h3>
+
+    <p><strong>Lose Weight:</strong> @result.Lose.ToString("F0") calories/day</p>
+
+    <p><strong>Maintain Weight:</strong> @result.Maintain.ToString("F0") calories/day</p>
+
+    <p><strong>Gain Weight:</strong> @result.Gain.ToString("F0") calories/day</p>
+}
+
+@code {
+    private CalculatorInput input = new();
+    private CalorieResult? result;
+
+    private void Calculate()
+    {
+        // Convert to metric
+        double weightKg = input.Weight * 0.453592;
+        double heightCm = (input.Feet * 30.48) + (input.Inches * 2.54);
+
+        // Mifflin-St Jeor BMR
+        double bmr;
+
+        if (input.Gender == "Male")
+        {
+            bmr = (10 * weightKg) + (6.25 * heightCm) - (5 * input.Age) + 5;
+        }
+        else
+        {
+            bmr = (10 * weightKg) + (6.25 * heightCm) - (5 * input.Age) - 161;
+        }
+
+        double activityMultiplier = input.ActivityLevel switch
+        {
+            1 => 1.25,
+            2 => 1.45,
+            3 => 1.68,
+            _ => 1.20
+        };
+
+        double maintenance = bmr * activityMultiplier;
+
+        result = new CalorieResult
+        {
+            Lose = maintenance - 500,
+            Maintain = maintenance,
+            Gain = maintenance + 500
+        };
+    }
+
+    public class CalculatorInput
+    {
+        public string Gender { get; set; } = "Male";
+
+        public double Weight { get; set; }
+
+        public double Feet { get; set; }
+
+        public double Inches { get; set; }
+
+        public int Age { get; set; }
+
+        public int ActivityLevel { get; set; } = 1;
+    }
+
+    public class CalorieResult
+    {
+        public double Lose { get; set; }
+
+        public double Maintain { get; set; }
+
+        public double Gain { get; set; }
+    }
+}

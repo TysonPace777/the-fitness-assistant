@@ -65,10 +65,6 @@ app.UseAuthorization();
 
 app.UseAntiforgery();
 
-app.MapRazorComponents<App>()
-    .AddInteractiveServerRenderMode();
-
-
 app.MapGet("/login", (string? returnUrl) =>
 {
     Console.WriteLine("LOGIN ENDPOINT HIT");
@@ -84,7 +80,6 @@ app.MapPost("/logout", async (HttpContext httpContext) =>
     return Results.Redirect("/");
 });
 
-// This is where Login redirects so that after authentication/registration success a user entry in the users table is automatically created.  This also auto runs the database seeder when it detects a new user has been added.
 app.MapGet("/auth-success", async (
     HttpContext context,
     UserService userService,
@@ -100,6 +95,11 @@ app.MapGet("/auth-success", async (
 
     return Results.Redirect("/");
 });
+
+app.MapRazorComponents<App>()
+    .AddInteractiveServerRenderMode();
+
+
 
 // using (var scope = app.Services.CreateScope())
 // {

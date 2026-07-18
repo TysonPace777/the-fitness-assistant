@@ -10,69 +10,73 @@
 
 <PageTitle>Dashboard</PageTitle>
 
+<div class="dashboard">
+    <h1 class="dashboard-title">Fitness Dashboard</h1>
 
-<h1>Fitness Dashboard</h1>
+    @if (currentUser == null)
+    {
+        <p class="loading">Loading...</p>
+    }
+    else
+    {
+        <h2 class="welcome">Welcome, @currentUser.DisplayName!</h2>
 
+        <div class="card-grid">
+            <section class="card">
+                <h3>Profile</h3>
+                <div class="stats">
+                    <div class="stat">
+                        <span class="stat-label">Height</span>
+                        <span class="stat-value">@currentUser.Height</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-label">Weight</span>
+                        <span class="stat-value">@currentUser.Weight</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-label">Age</span>
+                        <span class="stat-value">@currentUser.Age</span>
+                    </div>
+                </div>
+            </section>
 
-@if (currentUser == null)
-{
-    <p>Loading...</p>
-}
-else
-{
-    <h2>Welcome, @currentUser.DisplayName!</h2>
+            <section class="card goal-card">
+                <h3>Calorie Goal</h3>
+                @if (goal != null)
+                {
+                    <p class="goal-value">@goal.DailyCalories <span>cal/day</span></p>
+                    <p class="goal-type">@goal.GoalType</p>
+                }
+                else
+                {
+                    <p class="empty">No calorie goal found.</p>
+                }
+            </section>
+        </div>
 
-    <div>
-        <h3>Profile</h3>
-
-        <p>
-            Height: @currentUser.Height
-        </p>
-
-        <p>
-            Weight: @currentUser.Weight
-        </p>
-
-        <p>
-            Age: @currentUser.Age
-        </p>
-    </div>
-
-
-    <div>
-        <h3>Calorie Goal</h3>
-
-        @if (goal != null)
-        {
-            <p>
-                @goal.GoalType:
-                @goal.DailyCalories calories/day
-            </p>
-        }
-        else
-        {
-            <p>No calorie goal found.</p>
-        }
-
-    </div>
-
-
-    <div>
-        <h3>Recent Food Logs</h3>
-
-        @foreach (var log in foodLogs)
-        {
-            <p>
-                @log.LogDate.ToShortDateString()
-                -
-                @log.MealType:
-                @log.Food.Name
-                (@log.Food.Calories calories)
-            </p>
-        }
-
-    </div>
-}
+        <section class="card logs-card">
+            <h3>Recent Food Logs</h3>
+            @if (foodLogs.Any())
+            {
+                <ul class="food-logs">
+                    @foreach (var log in foodLogs)
+                    {
+                        <li class="food-log">
+                            <span class="log-date">@log.LogDate.ToShortDateString()</span>
+                            <span class="log-meal">@log.MealType</span>
+                            <span class="log-food">@log.Food.Name</span>
+                            <span class="log-cal">@log.Food.Calories cal</span>
+                        </li>
+                    }
+                </ul>
+            }
+            else
+            {
+                <p class="empty">No food logs yet.</p>
+            }
+        </section>
+    }
+</div>
 
 
 @code {

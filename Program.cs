@@ -5,8 +5,15 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authentication;
 using the_fitness_assistant.Services;
+using Microsoft.AspNetCore.DataProtection.Extensions;
+using Microsoft.AspNetCore.DataProtection;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services
+    .AddDataProtection()
+    .PersistKeysToFileSystem(new DirectoryInfo("/app/keys"))
+    .SetApplicationName("the-fitness-assistant");
 
 // Authentication google oauth
 builder.Services.AddAuthorization();
@@ -34,9 +41,14 @@ builder.Services
         options.DefaultChallengeScheme = GoogleDefaults.AuthenticationScheme;
     })
     .AddCookie(options =>
-    {
-        options.LoginPath = "/login";
-        options.LogoutPath = "/logout";
+{
+    options.LoginPath = "/login";
+    options.LogoutPath = "/logout";
+
+    options.Cookie.Name = "FitnessAssistant.Auth";
+    options.Cookie.HttpOnly = true;
+    options.Cookie.SameSite = SameSiteMode.None;
+    options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
     })
     .AddGoogle(options =>
     {
@@ -90,7 +102,7 @@ app.MapGet("/auth-success", async (
 {
     Console.WriteLine("AUTH-SUCCESS ENDPOINT HIT");
 
-    if (context.User.Identity?.IsAuthenticated != true)
+    if (!context.User.Identity?.IsAuthenticated ?? true)
     {
         return Results.Redirect("/login");
     }
@@ -100,8 +112,7 @@ app.MapGet("/auth-success", async (
     await demoDataSeeder.SeedForUserAsync(user);
 
     return Results.Redirect("/");
-})
-.RequireAuthorization();
+});
 
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();

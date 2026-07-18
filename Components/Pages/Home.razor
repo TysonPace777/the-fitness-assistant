@@ -64,8 +64,8 @@
                         <li class="food-log">
                             <span class="log-date">@log.LogDate.ToShortDateString()</span>
                             <span class="log-meal">@log.MealType</span>
-                            <span class="log-food">@log.Food.Name</span>
-                            <span class="log-cal">@log.Food.Calories cal</span>
+                            <span class="log-food">@log.Food?.Name</span>
+                            <span class="log-cal">@log.Food?.Calories cal</span>
                         </li>
                     }
                 </ul>
@@ -88,29 +88,44 @@
 
     protected override async Task OnInitializedAsync()
     {
-        var authState =
-            await AuthenticationStateProvider.GetAuthenticationStateAsync();
-
-
-        currentUser =
-            await UserService.GetUserByPrincipalAsync(authState.User);
-
-
-        if (currentUser != null)
+        try
         {
-            goal =
-                await DbContext.CalorieGoals
-                    .FirstOrDefaultAsync(
-                        c => c.UserId == currentUser.UserId);
+            var authState =
+                await AuthenticationStateProvider.GetAuthenticationStateAsync();
 
+            Console.WriteLine($"Authenticated: {authState.User.Identity?.IsAuthenticated}");
+            Console.WriteLine($"Email: {authState.User.Identity?.Name}");
 
-            foodLogs =
-                await DbContext.FoodLogEntries
-                    .Include(f => f.Food)
-                    .Where(f => f.UserId == currentUser.UserId)
-                    .OrderByDescending(f => f.LogDate)
-                    .Take(5)
-                    .ToListAsync();
+            currentUser =
+                await UserService.GetUserByPrincipalAsync(authState.User);
+
+            Console.WriteLine($"Database user found: {currentUser?.DisplayName}");
+
+            if (currentUser != null)
+            {
+                goal =
+                    await DbContext.CalorieGoals
+                        .FirstOrDefaultAsync(
+                            c => c.UserId == currentUser.UserId);
+
+                Console.WriteLine($"Goal found: {goal != null}");
+
+                foodLogs =
+                    await DbContext.FoodLogEntries
+                        .Include(f => f.Food)
+                        .Where(f => f.UserId == currentUser.UserId)
+                        .OrderByDescending(f => f.LogDate)
+                        .Take(5)
+                        .ToListAsync();
+
+                Console.WriteLine($"Food logs: {foodLogs.Count}");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("HOME PAGE ERROR:");
+            Console.WriteLine(ex.ToString());
+            throw;
         }
     }
 }

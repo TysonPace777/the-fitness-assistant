@@ -70,7 +70,10 @@ app.MapGet("/login", (string? returnUrl) =>
     Console.WriteLine("LOGIN ENDPOINT HIT");
 
     return Results.Challenge(
-        new AuthenticationProperties { RedirectUri = "/auth-success" },
+        new AuthenticationProperties
+        {
+            RedirectUri = "/auth-success"
+        },
         new[] { GoogleDefaults.AuthenticationScheme });
 });
 
@@ -87,14 +90,18 @@ app.MapGet("/auth-success", async (
 {
     Console.WriteLine("AUTH-SUCCESS ENDPOINT HIT");
 
-    var user = await userService.EnsureUserExistsAsync(
-        context.User
-    );
+    if (context.User.Identity?.IsAuthenticated != true)
+    {
+        return Results.Redirect("/login");
+    }
+
+    var user = await userService.EnsureUserExistsAsync(context.User);
 
     await demoDataSeeder.SeedForUserAsync(user);
 
     return Results.Redirect("/");
-});
+})
+.RequireAuthorization();
 
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();

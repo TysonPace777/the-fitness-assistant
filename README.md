@@ -14,6 +14,8 @@ Some people can read War and Peace and come away thinking it's a simple adventur
 (Zimondi's Quote)
 "Small, consistent steps taken every day lead to lasting strength in fitness, in learning, and in life."
 
+## 
+
 ## Running the App Locally
 
 1. Clone the repository

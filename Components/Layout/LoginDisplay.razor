@@ -12,10 +12,8 @@
             @context.User.Identity?.AuthenticationType
         </p>
 
-        <form action="/logout" method="post">
-            <button class="btn btn-link">
-                Logout
-            </button>
+        <form method="post" action="/logout" data-enhance="false">
+            <button type="submit">Logout</button>
         </form>
     </Authorized>
 

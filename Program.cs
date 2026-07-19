@@ -25,6 +25,7 @@ builder.Services
 
 // Authentication google oauth
 builder.Services.AddAuthorization();
+builder.Services.AddAuthorizationCore();
 builder.Services.AddCascadingAuthenticationState();
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
@@ -101,9 +102,10 @@ app.MapGet("/login", (string? returnUrl) =>
         new[] { GoogleDefaults.AuthenticationScheme });
 });
 
-app.MapPost("/logout", async (HttpContext httpContext) =>
+app.MapPost("/logout", async (HttpContext context) =>
 {
-    await httpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+    Console.WriteLine("LOGOUT ENDPOINT HIT");
+    await context.SignOutAsync();
     return Results.Redirect("/");
 });
 

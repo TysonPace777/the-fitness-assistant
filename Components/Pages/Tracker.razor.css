@@ -1,0 +1,41 @@
+.tracker-card {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+}
+
+th {
+    background-color: #052767;
+    color: white;
+}
+
+table {
+    border-collapse: collapse;
+    width: 100%;
+    max-width: 500px;
+}
+
+th, td {
+    border: 1px gray solid;
+    text-align: center;
+    padding: 5px;
+}
+
+@media screen and (max-width: 640px) {
+    table {
+        display: grid;
+        grid-template-columns: 3fr;
+        width: 100%; 
+        max-width: none;
+    }
+
+    thead, tbody, tr {
+        display: contents;
+    }
+
+    th, td {
+        display: block;
+        border: 1px gray solid;
+        padding: 5px;
+    }
+}

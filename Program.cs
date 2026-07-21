@@ -139,4 +139,7 @@ app.MapRazorComponents<App>()
 //     DbSeeder.Seed(db);
 // }
 
+Console.WriteLine(builder.Configuration["Authentication:Google:ClientId"]);
+Console.WriteLine(builder.Configuration["Authentication:Google:ClientSecret"]?.Length);
+
 app.Run();

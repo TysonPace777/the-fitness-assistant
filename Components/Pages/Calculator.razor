@@ -11,57 +11,61 @@
 
 <EditForm Model="@input" OnValidSubmit="@Calculate" FormName="CalorieCalculator">
 
-    <div>
-        <label>Gender:</label>
-        <InputSelect @bind-Value="input.Gender">
-            <option value="Male">Male</option>
-            <option value="Female">Female</option>
-        </InputSelect>
-    </div>
+    <div class="calculator-card">
+        <div class="form">
+            <label>Gender:</label>
+            <InputSelect @bind-Value="input.Gender">
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+            </InputSelect>
+        </div>
 
-    <div>
-        <label>Weight (lbs):</label>
-        <InputNumber @bind-Value="input.Weight" />
-    </div>
+        <div class="form">
+            <label>Weight (lbs):</label>
+            <InputNumber @bind-Value="input.Weight" />
+        </div>
 
-    <div>
-        <label>Height (feet):</label>
-        <InputNumber @bind-Value="input.Feet" />
-    </div>
+        <div class="form">
+            <label>Height (feet):</label>
+            <InputNumber @bind-Value="input.Feet" />
+        </div>
 
-    <div>
-        <label>Height (inches):</label>
-        <InputNumber @bind-Value="input.Inches" />
-    </div>
+        <div class="form">
+            <label>Height (inches):</label>
+            <InputNumber @bind-Value="input.Inches" />
+        </div>
 
-    <div>
-        <label>Age (years):</label>
-        <InputNumber @bind-Value="input.Age" />
-    </div>
+        <div class="form">
+            <label>Age (years):</label>
+            <InputNumber @bind-Value="input.Age" />
+        </div>
 
-    <div>
-        <label>Choose Activity Level:</label>
-        <InputSelect @bind-Value="input.ActivityLevel">
-            <option value="1">Low Activity (Little to no planned exercise)</option>
-            <option value="2">Medium Activity (Exercise 2-4 days per week)</option>
-            <option value="3">High Activity (Exercise 5-7 days per week or an active job)</option>
-        </InputSelect>
+        <div class="form">
+            <label>Choose Activity Level:</label>
+            <InputSelect @bind-Value="input.ActivityLevel">
+                <option value="1">Low Activity (Little to no planned exercise)</option>
+                <option value="2">Medium Activity (Exercise 2-4 days per week)</option>
+                <option value="3">High Activity (Exercise 5-7 days per week or an active job)</option>
+            </InputSelect>
+        </div>
+        
+        <button type="submit" class="form-calc">Calculate</button>
     </div>
-    
-    <button type="submit">Calculate</button>
 </EditForm>
 
 @if (result != null)
 {
-    <hr />
+    <div class="results">
+        <hr />
 
-    <h3>Daily Calories</h3>
+        <h3 class="underline">Daily Calories</h3>
 
-    <p><strong>Lose Weight:</strong> @result.Lose.ToString("F0") calories/day</p>
+        <p><strong>Lose Weight:</strong> @result.Lose.ToString("F0") calories/day</p>
 
-    <p><strong>Maintain Weight:</strong> @result.Maintain.ToString("F0") calories/day</p>
+        <p><strong>Maintain Weight:</strong> @result.Maintain.ToString("F0") calories/day</p>
 
-    <p><strong>Gain Weight:</strong> @result.Gain.ToString("F0") calories/day</p>
+        <p><strong>Gain Weight:</strong> @result.Gain.ToString("F0") calories/day</p>
+    </div>
 }
 
 @code {

@@ -1,0 +1,280 @@
+# Infrastructure / Database Backup Implementation
+
+## Overview
+
+A PostgreSQL database backup and recovery process was implemented for the Fitness Assistant application. The goal of this process was to create a reliable method for backing up the production database hosted on Render and restoring it to a PostgreSQL database running on a Raspberry Pi.
+
+This workflow demonstrates the ability to:
+
+* Create a database backup from a production PostgreSQL environment.
+* Securely transfer backup files between systems.
+* Restore a database backup into another PostgreSQL instance.
+* Verify that database tables and data were successfully recovered.
+
+The backup workflow is:
+
+```
+Render PostgreSQL Database
+          |
+          | pg_dump
+          v
+Database Backup File (.sql)
+          |
+          | scp transfer
+          v
+Raspberry Pi Backup Server
+          |
+          | PostgreSQL restore
+          v
+Local Backup Database
+```
+
+---
+
+# Backup Creation Using pg_dump
+
+## Purpose
+
+`pg_dump` is a PostgreSQL utility used to export a database into a SQL backup file. The generated file contains the commands needed to recreate database tables, relationships, indexes, and stored data.
+
+Example command:
+
+```bash
+pg_dump --no-owner "RENDER_DATABASE_CONNECTION_STRING" > fitness_backup.sql
+```
+
+## Explanation
+
+* `pg_dump` connects to the production PostgreSQL database.
+* The database connection string identifies the Render database.
+* `--no-owner` makes the backup portable by preventing ownership conflicts when restoring to another PostgreSQL server.
+* `>` redirects the output into a file named `fitness_backup.sql`.
+
+The resulting file is a snapshot of the database that can be restored later.
+
+Example output:
+
+```
+fitness_backup.sql
+Size: 11 KB
+```
+
+---
+
+# Secure File Transfer Using SCP
+
+## Purpose
+
+The generated backup file was transferred from the development computer to the Raspberry Pi using SCP (Secure Copy Protocol).
+
+Example command:
+
+```bash
+scp fitness_backup.sql holly@192.168.0.137:~/db_backups/
+```
+
+## Explanation
+
+* `scp` securely copies files between computers.
+* `fitness_backup.sql` is the local backup file.
+* `holly@192.168.0.137` identifies the Raspberry Pi.
+* `~/db_backups/` is the destination directory on the Pi.
+
+After transfer, the backup file was stored on the Raspberry Pi:
+
+```
+/home/holly/db_backups/fitness_backup.sql
+```
+
+Verification:
+
+```bash
+ls -lh ~/db_backups
+```
+
+Result:
+
+```
+-rw-r--r-- 1 holly holly 11K fitness_backup.sql
+```
+
+---
+
+# Database Restore on Raspberry Pi
+
+## Purpose
+
+The SQL backup file was restored into a PostgreSQL database running on the Raspberry Pi.
+
+Example command:
+
+```bash
+psql -U fitness -d fitness_assistant_backup < ~/db_backups/fitness_backup.sql
+```
+
+## Explanation
+
+* `psql` is the PostgreSQL command-line client.
+* `-U fitness` connects using the PostgreSQL user created for the backup database.
+* `-d fitness_assistant_backup` specifies the destination database.
+* `< fitness_backup.sql` sends the SQL commands from the backup file into PostgreSQL.
+
+The restore process recreated:
+
+* Database tables
+* Relationships
+* Indexes
+* Stored records
+
+---
+
+# Verification of Restored Database
+
+## Table Verification
+
+After restoring the database, PostgreSQL was queried to verify that tables were successfully created.
+
+Command:
+
+```sql
+\dt
+```
+
+Result:
+
+```
+ Schema |         Name          | Type  | Owner
+--------+-----------------------+-------+--------
+ public | CalorieGoals          | table | fitness
+ public | FoodLogEntries        | table | fitness
+ public | Foods                 | table | fitness
+ public | Users                 | table | fitness
+ public | __EFMigrationsHistory | table | fitness
+```
+
+This confirmed that the Entity Framework database structure was restored successfully.
+
+---
+
+## Data Verification
+
+Specific queries were used to confirm that records were restored.
+
+Example:
+
+```sql
+SELECT * FROM "Users";
+```
+
+Result:
+
+```
+UserId | Email | DisplayName | Height | Weight | Age
+```
+
+The returned records confirmed that user data was successfully recovered.
+
+Additional verification:
+
+```sql
+SELECT COUNT(*) FROM "Foods";
+```
+
+Result:
+
+```
+count
+-----
+6
+```
+
+This confirmed that food records were also restored.
+
+---
+
+# Summary
+
+The completed backup test verified that the Fitness Assistant database can be backed up, transferred, restored, and validated successfully.
+
+The implemented process provides:
+
+* A recovery method if the production database is lost.
+* A local backup copy stored on dedicated hardware.
+* Experience with PostgreSQL administration, Linux systems, secure file transfer, and database recovery procedures.
+
+________________________________________________________________________________________
+Here is the terminal readout showing my code creating my backup database and my cron script that schedules when the create backup database code runs which is 2am every morning. Then I have a command that shows the output displaying all the backups I have saved in my backups folder. 
+
+holly@holly-pi:~ $ cat ~/scripts/backup_fitness_db.sh
+#!/bin/bash
+
+# Create timestamp
+DATE=$(date +"%Y-%m-%d_%H-%M")
+
+# Backup location
+BACKUP_DIR="/home/holly/db_backups"
+
+# Filename
+BACKUP_FILE="$BACKUP_DIR/fitness_backup_$DATE.sql"
+
+# Database connection information
+HOST="dpg-d9cli261a83c739b3tkg-a.oregon-postgres.render.com"
+USER="the_fitness_assistant_user"
+DATABASE="the_fitness_assistant"
+
+# Create backup
+/usr/lib/postgresql/18/bin/pg_dump \
+--no-owner \
+-h "$HOST" \
+-U "$USER" \
+-d "$DATABASE" \
+-f "$BACKUP_FILE"
+
+# Check success
+if [ $? -eq 0 ]; then
+    echo "Backup completed: $BACKUP_FILE"
+
+    # Delete backups older than 30 days
+    find "$BACKUP_DIR" \
+    -name "fitness_backup_*.sql" \
+    -mtime +30 \
+    -delete
+
+    echo "Old backups cleaned up."
+
+else
+    echo "Backup failed!"
+    rm -f "$BACKUP_FILE"
+fi
+holly@holly-pi:~ $ crontab -l
+# Edit this file to introduce tasks to be run by cron.
+#
+# Each task to run has to be defined through a single line
+# indicating with different fields when the task will be run
+# and what command to run for the task
+#
+# To define the time you can provide concrete values for
+# minute (m), hour (h), day of month (dom), month (mon),
+# and day of week (dow) or use '*' in these fields (for 'any').
+#
+# Notice that tasks will be started based on the cron's system
+# daemon's notion of time and timezones.
+#
+# Output of the crontab jobs (including errors) is sent through
+# email to the user the crontab file belongs to (unless redirected).
+#
+# For example, you can run a backup of all your user accounts
+# at 5 a.m every week with:
+# 0 5 * * 1 tar -zcf /var/backups/home.tgz /home/
+#
+# For more information see the manual pages of crontab(5) and cron(8)
+#
+# m h  dom mon dow   command
+
+0 2 * * * /home/holly/scripts/backup_fitness_db.sh
+holly@holly-pi:~ $ ls -lh ~/db_backups
+total 36K
+-rw-rw-r-- 1 holly holly 9.0K Jul 22 17:37 fitness_backup_2026-07-22_17-37.sql
+-rw-rw-r-- 1 holly holly 9.0K Jul 22 19:10 fitness_backup_2026-07-22_19-09.sql
+-rw-rw-r-- 1 holly holly 9.0K Jul 22 19:21 fitness_backup_2026-07-22_19-21.sql
+holly@holly-pi:~ $

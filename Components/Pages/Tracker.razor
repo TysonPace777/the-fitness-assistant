@@ -5,29 +5,71 @@
 
 <h1>Meal Tracker</h1>
 
+<div class="dates">
+    <button>⬅️</button>
+    <div class="selected-date">XX/XX/XXXX</div>
+    <button>➡️</button>
+</div>
+    
+
 <div class="tracker-card">
     <table>
         <tbody>
             <tr>
                 <th>Breakfast</th>
-                <td>(Breakfast food)</td>
-                <td>(Calorie Amount)</td>
+                <td>
+                    <ul>
+                        <li>food 1</li>
+                    </ul>
+                </td>
+                <td><button>Add Food</button></td>
+                <td>(Calorie Total)</td>
+                
             </tr>
             <tr>
                 <th>Lunch</th>
-                <td>(Lunch food)</td>
-                <td>(Calorie Amount)</td>
+                <td>
+                    <ul>
+                        <li>food 1</li>
+                    </ul>
+                </td>
+                <td><button>Add Food</button></td>
+                <td>(Calorie Total)</td>
             </tr>
             <tr>
                 <th>Dinner</th>
-                <td>(Dinner food)</td>
-                <td>(Calorie Amount)</td>
+                <td>
+                    <ul>
+                        <li>food 1</li>
+                    </ul>
+                </td>
+                <td><button>Add Food</button></td>
+                <td>(Calorie Total)</td>
             </tr>
             <tr>
                 <th>Snacks</th>
-                <td>(Snack food)</td>
-                <td>(Calorie Amount)</td>
+                <td>
+                    <ul>
+                        <li>food 1</li>
+                    </ul>
+                </td>
+                <td><button>Add Food</button></td>
+                <td>(Calorie Total)</td>
             </tr>
         </tbody>
     </table>
 </div>
+
+<div class="cal-total">-Calorie Total for the day here-</div>
+
+@*The button for adding food will bring a form to either choose
+from a list or add your own food to the database*@
+
+@*The date selector will default to today and then go forward 
+or back with the buttons on each side*@
+
+@*The database should fill foods already logged for the user, 
+and add all the calories from that meal to the total for the meal section*@
+
+@*There will also be some option to remove food as a button somewhere*@
+

@@ -1,11 +1,16 @@
 ﻿@page "/"
 
+@rendermode InteractiveServer
+
 @using Microsoft.EntityFrameworkCore
 @using Microsoft.AspNetCore.Components.Authorization
 @using the_fitness_assistant.Models
+@using the_fitness_assistant.Services
 
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject UserService UserService
+@inject ReportPdfService ReportPdfService
+@inject IJSRuntime JS
 @inject ApplicationDbContext DbContext
 
 <PageTitle>Dashboard</PageTitle>
@@ -23,6 +28,7 @@
 
         <div class="card-grid">
             <section class="card">
+
                 <h3>Profile</h3>
                 <div class="stats">
                     <div class="stat">
@@ -76,6 +82,9 @@
             }
         </section>
     }
+    <button class="btn btn-primary" @onclick="GenerateReport">
+        Download PDF Report
+    </button>
 </div>
 
 
@@ -127,5 +136,26 @@
             Console.WriteLine(ex.ToString());
             throw;
         }
+    }
+
+    private async Task GenerateReport()
+    {
+        var report = new DashboardReport
+        {
+            User = currentUser!,
+            CalorieGoal = goal,
+            RecentFoodLogs = foodLogs
+        };
+
+        var pdfBytes = ReportPdfService.GeneratePdf(report);
+
+        var base64 = Convert.ToBase64String(pdfBytes);
+
+        var fileName = $"Fitness_Report_{DateTime.Now:yyyy-MM-dd_HHmmss}.pdf";
+
+        await JS.InvokeVoidAsync(
+            "downloadFile",
+            fileName,
+            base64);
     }
 }

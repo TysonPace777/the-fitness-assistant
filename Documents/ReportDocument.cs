@@ -2,6 +2,7 @@ using QuestPDF.Fluent;
 using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
 using the_fitness_assistant.Models;
+using the_fitness_assistant.Services;
 
 namespace the_fitness_assistant.Documents;
 
@@ -43,14 +44,20 @@ public class ReportDocument : IDocument
                     .FontSize(18)
                     .Bold();
 
-                col.Item().Text($"Height: {_report.User.Height}");
-                col.Item().Text($"Weight: {_report.User.Weight}");
-                col.Item().Text($"Age: {_report.User.Age}");
+                col.Item().Text(
+                    $"Height: {MeasurementFormatter.FormatHeight(_report.User.Height)}");
+
+                col.Item().Text(
+                    $"Weight: {MeasurementFormatter.FormatWeight(_report.User.Weight)}");
+
+                col.Item().Text(
+                    $"Age: {MeasurementFormatter.FormatAge(_report.User.Age)}");
 
                 if (_report.CalorieGoal != null)
                 {
                     col.Item().Text($"Calorie Goal: {_report.CalorieGoal.DailyCalories} cal/day");
-                    col.Item().Text($"Goal: {_report.CalorieGoal.GoalType}");
+                    col.Item().Text(
+                        $"Goal: {GoalTypes.ToDisplayName(_report.CalorieGoal.GoalType)}");
                 }
 
                 col.Item().PaddingVertical(15);

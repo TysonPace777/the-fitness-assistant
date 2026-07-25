@@ -1,0 +1,139 @@
+@page "/profile"
+@attribute [Authorize]
+
+@rendermode InteractiveServer
+
+@using System.ComponentModel.DataAnnotations
+
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject UserService UserService
+@inject ApplicationDbContext DbContext
+
+<PageTitle>My Profile</PageTitle>
+
+<h1>My Profile</h1>
+
+<p>
+    These details show on your dashboard and prefill the
+    <a href="calculator">calorie calculator</a>.
+</p>
+
+@if (currentUser == null)
+{
+    <p class="loading">Loading...</p>
+}
+else
+{
+    <EditForm Model="@input" OnValidSubmit="@SaveProfile" FormName="ProfileForm">
+
+        <DataAnnotationsValidator />
+
+        <div class="profile-card">
+            <div class="form">
+                <label>Display name:</label>
+                <InputText @bind-Value="input.DisplayName" />
+            </div>
+
+            <div class="form">
+                <label>Email:</label>
+                <span class="readonly-value">@currentUser.Email</span>
+            </div>
+
+            <div class="form">
+                <label>Height:</label>
+                <div class="height-inputs">
+                    <InputNumber @bind-Value="input.Feet" />
+                    <span class="unit">ft</span>
+
+                    <InputNumber @bind-Value="input.Inches" />
+                    <span class="unit">in</span>
+                </div>
+            </div>
+
+            <div class="form">
+                <label>Weight (lbs):</label>
+                <InputNumber @bind-Value="input.Weight" />
+            </div>
+
+            <div class="form">
+                <label>Age (years):</label>
+                <InputNumber @bind-Value="input.Age" />
+            </div>
+
+            <ValidationSummary />
+
+            <button type="submit" class="form-save">Save Profile</button>
+        </div>
+    </EditForm>
+
+    @if (!string.IsNullOrEmpty(statusMessage))
+    {
+        <p class="save-status">@statusMessage</p>
+    }
+}
+
+@code {
+    private User? currentUser;
+    private ProfileInput input = new();
+
+    private string statusMessage = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState =
+            await AuthenticationStateProvider.GetAuthenticationStateAsync();
+
+        currentUser =
+            await UserService.GetUserByPrincipalAsync(authState.User);
+
+        if (currentUser == null)
+        {
+            return;
+        }
+
+        input.DisplayName = currentUser.DisplayName;
+        input.Weight = currentUser.Weight;
+        input.Age = currentUser.Age;
+
+        // Height is stored as total inches.
+        input.Feet = (int)(currentUser.Height / 12);
+        input.Inches = (int)Math.Round(currentUser.Height % 12);
+    }
+
+    private async Task SaveProfile()
+    {
+        if (currentUser == null)
+        {
+            statusMessage = "Could not find your account. Try signing in again.";
+            return;
+        }
+
+        currentUser.DisplayName = input.DisplayName;
+        currentUser.Height = (input.Feet * 12) + input.Inches;
+        currentUser.Weight = input.Weight;
+        currentUser.Age = input.Age;
+
+        await DbContext.SaveChangesAsync();
+
+        statusMessage = "Profile saved.";
+    }
+
+    public class ProfileInput
+    {
+        [Required(ErrorMessage = "Display name is required.")]
+        [StringLength(100)]
+        public string DisplayName { get; set; } = "";
+
+        [Range(1, 8, ErrorMessage = "Feet must be between 1 and 8.")]
+        public double Feet { get; set; }
+
+        [Range(0, 11, ErrorMessage = "Inches must be 0-11 \u2014 enter only the leftover inches (5 ft 9 in, not 69).")]
+        public double Inches { get; set; }
+
+        [Range(50, 1000, ErrorMessage = "Enter a weight between 50 and 1000 lbs.")]
+        public double Weight { get; set; }
+
+        [Range(13, 120, ErrorMessage = "Enter an age between 13 and 120.")]
+        public int Age { get; set; }
+    }
+}

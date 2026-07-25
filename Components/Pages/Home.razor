@@ -34,17 +34,19 @@
                 <div class="stats">
                     <div class="stat">
                         <span class="stat-label">Height</span>
-                        <span class="stat-value">@currentUser.Height</span>
+                        <span class="stat-value">@MeasurementFormatter.FormatHeight(currentUser.Height)</span>
                     </div>
                     <div class="stat">
                         <span class="stat-label">Weight</span>
-                        <span class="stat-value">@currentUser.Weight</span>
+                        <span class="stat-value">@MeasurementFormatter.FormatWeight(currentUser.Weight)</span>
                     </div>
                     <div class="stat">
                         <span class="stat-label">Age</span>
-                        <span class="stat-value">@currentUser.Age</span>
+                        <span class="stat-value">@MeasurementFormatter.FormatAge(currentUser.Age)</span>
                     </div>
                 </div>
+
+                <p class="card-link"><a href="profile">Edit profile</a></p>
             </section>
 
             <section class="card goal-card">
@@ -52,11 +54,12 @@
                 @if (goal != null)
                 {
                     <p class="goal-value">@goal.DailyCalories <span>cal/day</span></p>
-                    <p class="goal-type">@goal.GoalType</p>
+                    <p class="goal-type">@GoalTypes.ToDisplayName(goal.GoalType)</p>
                 }
                 else
                 {
-                    <p class="empty">No calorie goal found.</p>
+                    <p class="empty">No calorie goal set yet.</p>
+                    <p class="card-link"><a href="calculator">Set one on the calculator</a></p>
                 }
             </section>
         </div>

@@ -5,11 +5,15 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authentication;
 using the_fitness_assistant.Services;
+using QuestPDF.Helpers;
+using QuestPDF.Infrastructure;
 using Microsoft.AspNetCore.DataProtection.Extensions;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.HttpOverrides;
 
 var builder = WebApplication.CreateBuilder(args);
+
+QuestPDF.Settings.License = LicenseType.Community;
 
 builder.Services.Configure<ForwardedHeadersOptions>(options =>
 {
@@ -37,6 +41,9 @@ builder.Services.AddScoped<UserService>();
 
 // This Seeder service auto fills the users account with data for demo purposes
 builder.Services.AddScoped<DemoDataSeeder>();
+
+// This helps create the PDF for the dashboard report generator
+builder.Services.AddScoped<ReportPdfService>();
 
 // Add services to the container.
 builder.Services.AddRazorComponents()

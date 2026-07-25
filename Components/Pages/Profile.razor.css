@@ -1,4 +1,7 @@
-.calculator-card {
+/* Profile.razor.css — scoped styles for the profile editor.
+   Matches the look of Calculator.razor.css so the two pages feel related. */
+
+.profile-card {
     max-width: 500px;
     margin: 0 auto;
     padding: 1.5rem;
@@ -18,14 +21,18 @@
     font-weight: 600;
 }
 
-.form input,
-.form select {
+.form input {
     flex: 1;
     padding: .45rem;
     border-radius: 6px;
 }
 
-.form-calc {
+.readonly-value {
+    flex: 1;
+    color: #6b7280;
+}
+
+.form-save {
     display: block;
     width: 100%;
     max-width: 220px;
@@ -42,82 +49,18 @@
     transition: transform .15s ease, opacity .15s ease;
 }
 
-.form-calc:hover {
+.form-save:hover {
     transform: translateY(-2px);
     opacity: .9;
 }
 
-.results {
+.save-status {
     max-width: 500px;
-    margin: 2rem auto;
-    padding: 1rem;
-    border-radius: 10px;
-
-    text-align: center;
-    background: rgba(255, 255, 255, .05);
-}
-
-.underline {
-    text-decoration: underline;
-}
-
-.lose {
-    color: #d9534f;
-}
-
-.maintain {
-    color: #5bc0de;
-}
-
-.gain {
-    color: #5cb85c;
-}
-
-/* --- Set as my goal (saves a CalorieGoal to the database) --- */
-
-.goal-help {
-    font-size: .9rem;
-    color: #6b7280;
-}
-
-.goal-buttons {
-    display: flex;
-    justify-content: center;
-    gap: .75rem;
-    margin-top: .5rem;
-}
-
-.goal-btn {
-    flex: 1;
-    max-width: 130px;
-    padding: .6rem;
-
-    border: 1px solid #052767;
-    border-radius: 8px;
-
-    background: transparent;
-    color: #052767;
-    font-weight: 600;
-
-    cursor: pointer;
-    transition: transform .15s ease, opacity .15s ease;
-}
-
-.goal-btn:hover {
-    transform: translateY(-2px);
-    opacity: .9;
-}
-
-.goal-btn-active {
-    background: linear-gradient(160deg, #052767 0%, #3a0647 100%);
-    color: white;
-}
-
-.goal-status {
-    margin-top: 1rem;
+    margin: 1rem auto;
     padding: .6rem .9rem;
     border-radius: 8px;
 
+    text-align: center;
     font-weight: 600;
 
     color: #1e5c2f;
@@ -125,11 +68,9 @@
     border: 1px solid #bcdfc7;
 }
 
-.prefill-note {
-    font-size: .85rem;
+.loading {
     color: #6b7280;
-    text-align: center;
-    margin: .25rem 0 0;
+    font-style: italic;
 }
 
 

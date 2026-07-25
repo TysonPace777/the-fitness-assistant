@@ -173,3 +173,19 @@
         margin-left: 0;
     }
 }
+
+/* Link shown inside a dashboard card (edit profile / set a goal) */
+.card-link {
+    margin: 1rem 0 0;
+    font-size: .9rem;
+}
+
+.card-link a {
+    color: #052767;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.card-link a:hover {
+    text-decoration: underline;
+}

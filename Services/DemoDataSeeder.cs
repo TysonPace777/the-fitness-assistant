@@ -78,7 +78,7 @@ public class DemoDataSeeder
         var calorieGoal = new CalorieGoal
         {
             UserId = user.UserId,
-            GoalType = "Weight Loss",
+            GoalType = GoalTypes.Lose,
             DailyCalories = 1800
         };
 

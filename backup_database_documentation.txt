@@ -271,7 +271,7 @@ holly@holly-pi:~ $ crontab -l
 #
 # m h  dom mon dow   command
 
-0 2 * * * /home/holly/scripts/backup_fitness_db.sh
+0 2 * * * /bin/bash /home/holly/scripts/backup_fitness_db.sh >> /home/holly/scripts/backup.log 2>&1
 holly@holly-pi:~ $ ls -lh ~/db_backups
 total 36K
 -rw-rw-r-- 1 holly holly 9.0K Jul 22 17:37 fitness_backup_2026-07-22_17-37.sql

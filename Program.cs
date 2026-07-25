@@ -45,6 +45,9 @@ builder.Services.AddScoped<DemoDataSeeder>();
 // This helps create the PDF for the dashboard report generator
 builder.Services.AddScoped<ReportPdfService>();
 
+// This feature stores motivational quotes on fitness and chooses one at random to display on the home page.
+builder.Services.AddSingleton<QuoteService>();
+
 // Add services to the container.
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();

@@ -10,6 +10,7 @@
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject UserService UserService
 @inject ReportPdfService ReportPdfService
+@inject QuoteService QuoteService
 @inject IJSRuntime JS
 @inject ApplicationDbContext DbContext
 
@@ -85,7 +86,16 @@
     <button class="btn btn-primary" @onclick="GenerateReport">
         Download PDF Report
     </button>
+
+    <div>
+        <h3>Daily Inspiration</h3>
+
+        <p class="quote">
+            @quote
+        </p>
+    </div>
 </div>
+
 
 
 @code {
@@ -157,5 +167,12 @@
             "downloadFile",
             fileName,
             base64);
+    }
+
+    private string quote = "";
+
+    protected override void OnInitialized()
+    {
+        quote = QuoteService.GetRandomQuote();
     }
 }

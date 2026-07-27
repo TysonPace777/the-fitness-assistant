@@ -1,0 +1,244 @@
+@page "/tasks"
+
+@rendermode InteractiveServer
+
+@using Microsoft.AspNetCore.Components.Authorization
+@using the_fitness_assistant.Models
+
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject UserService UserService
+@inject DailyTaskService DailyTaskService
+
+
+<PageTitle>Daily Tasks</PageTitle>
+
+
+<div class="dashboard">
+
+    <h1 class="dashboard-title">
+        Daily Tasks
+    </h1>
+
+    @if (currentUser == null)
+    {
+        <p class="loading">
+            Loading...
+        </p>
+    }
+    else
+    {
+        <section class="tasks-card">
+
+            <h3>
+                Manage Your Daily Tasks
+            </h3>
+
+
+            @if (tasks.Any())
+            {
+                <div class="task-list">
+
+                    @foreach (var task in tasks)
+                    {
+                        <div class="task-card">
+
+                            <div>
+                                <h4>
+                                    @task.Title
+                                </h4>
+
+                                @if (!string.IsNullOrWhiteSpace(task.Description))
+                                {
+                                    <p>
+                                        @task.Description
+                                    </p>
+                                }
+                            </div>
+
+
+                            <div class="task-actions">
+                                <button class="task-btn edit-btn" @onclick="() => EditTask(task)">
+                                    Edit
+                                </button>
+
+                                <button class="task-btn delete-btn" @onclick="() => DeleteTask(task)">
+                                    Delete
+                                </button>
+                            </div>
+
+                        </div>
+                    }
+
+                </div>
+            }
+            else
+            {
+                <p class="empty">
+                    No tasks created yet.
+                </p>
+            }
+
+
+            <button class="add-task-btn" @onclick="ShowAddForm">
+                + Add Task
+            </button>
+
+            @if (showForm)
+            {
+                <div class="task-form">
+
+                    <h3>
+                        @(editing ? "Update Task" : "Add New Task")
+                    </h3>
+
+                    <div class="mb-3">
+                        <label>
+                            Title
+                        </label>
+
+                        <InputText class="form-control" @bind-Value="formTask.Title" />
+                    </div>
+
+
+                    <div class="mb-3">
+                        <label>
+                            Description
+                        </label>
+
+                        <InputTextArea class="form-control" @bind-Value="formTask.Description" />
+                    </div>
+
+
+                    <div class="mb-3">
+                        <label>
+                            Display Order
+                        </label>
+
+                        <InputNumber class="form-control" @bind-Value="formTask.DisplayOrder" />
+                    </div>
+
+
+                    <button class="save-btn" @onclick="SaveTask">
+                        @(editing ? "Update Task" : "Save Task")
+                    </button>
+
+
+                    <button class="cancel-btn" @onclick="CancelForm">
+                        Cancel
+                    </button>
+
+                </div>
+            }
+
+
+        </section>
+    }
+
+</div>
+
+
+@code {
+
+    private User? currentUser;
+
+    private List<DailyTask> tasks = new();
+
+    private bool showForm = false;
+
+    private DailyTask formTask = new();
+
+    private bool editing = false;
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState =
+            await AuthenticationStateProvider
+                .GetAuthenticationStateAsync();
+
+
+        currentUser =
+            await UserService
+                .GetUserByPrincipalAsync(authState.User);
+
+
+        if (currentUser != null)
+        {
+            tasks =
+                await DailyTaskService
+                    .GetUserTasksAsync(currentUser.UserId);
+        }
+    }
+
+    private void ShowAddForm()
+    {
+        formTask = new DailyTask
+        {
+            DisplayOrder = tasks.Count + 1
+        };
+
+        editing = false;
+        showForm = true;
+    }
+
+    private async Task SaveTask()
+    {
+        if (currentUser == null)
+            return;
+
+
+        if (editing)
+        {
+            await DailyTaskService.UpdateTaskAsync(formTask);
+        }
+        else
+        {
+            formTask.UserId = currentUser.UserId;
+
+            await DailyTaskService.CreateTaskAsync(formTask);
+        }
+
+
+        tasks =
+            await DailyTaskService.GetUserTasksAsync(
+                currentUser.UserId);
+
+
+        showForm = false;
+        editing = false;
+        formTask = new DailyTask();
+    }
+
+    private void CancelForm()
+    {
+        showForm = false;
+        editing = false;
+
+        formTask = new DailyTask();
+    }
+
+    private async Task DeleteTask(DailyTask task)
+    {
+        await DailyTaskService.DeleteTaskAsync(task.DailyTaskId);
+
+        tasks =
+            await DailyTaskService.GetUserTasksAsync(
+                currentUser!.UserId);
+    }
+
+    private void EditTask(DailyTask task)
+    {
+        formTask = new DailyTask
+        {
+            DailyTaskId = task.DailyTaskId,
+            UserId = task.UserId,
+            Title = task.Title,
+            Description = task.Description,
+            DisplayOrder = task.DisplayOrder,
+            IsActive = task.IsActive
+        };
+
+        editing = true;
+        showForm = true;
+    }
+}

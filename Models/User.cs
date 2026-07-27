@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+
 namespace the_fitness_assistant.Models;
 
 public class User
@@ -20,4 +21,6 @@ public class User
     public ICollection<Food> Foods { get; set; } = new List<Food>();
 
     public ICollection<CalorieGoal> CalorieGoals { get; set; } = new List<CalorieGoal>();
+
+    public ICollection<DailyTask> DailyTasks { get; set; } = new List<DailyTask>();
 }

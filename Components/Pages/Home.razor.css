@@ -189,3 +189,146 @@
 .card-link a:hover {
     text-decoration: underline;
 }
+
+/* Dashboard actions */
+.dashboard-actions {
+    margin-top: 1.5rem;
+    display: flex;
+    justify-content: center;
+}
+
+.report-button {
+    background: linear-gradient(160deg, #052767 0%, #3a0647 100%);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 0.75rem 1.5rem;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.report-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+}
+
+
+/* Daily inspiration */
+.inspiration-card {
+    margin-top: 1rem;
+    text-align: center;
+}
+
+.inspiration-card h3 {
+    margin-bottom: 1rem;
+}
+
+.quote {
+    font-size: 1.1rem;
+    font-style: italic;
+    color: #3a0647;
+    line-height: 1.6;
+    margin: 0;
+}
+
+/* Daily tasks */
+
+.daily-tasks {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.daily-tasks li {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid #f0f1f5;
+}
+
+.daily-tasks li:last-child {
+    border-bottom: none;
+}
+
+.daily-tasks input[type="checkbox"] {
+    width: 1.2rem;
+    height: 1.2rem;
+    margin-top: 0.2rem;
+    cursor: pointer;
+}
+
+.task-content strong {
+    display: block;
+    color: #1f2430;
+}
+
+.task-description {
+    font-size: 0.85rem;
+    color: #6b7280;
+    margin-top: 0.2rem;
+}
+
+/* Daily progress LED indicator */
+
+/* Daily progress LED indicator */
+
+.progress-indicator {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+}
+
+.status-light {
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    margin-bottom: 0.75rem;
+    animation: pulse-light 1.8s infinite;
+}
+
+.status-light.red {
+    background-color: #dc2626;
+    color: #dc2626;
+}
+
+.status-light.yellow {
+    background-color: #eab308;
+    color: #eab308;
+}
+
+.status-light.green {
+    background-color: #16a34a;
+    color: #16a34a;
+}
+
+
+@keyframes pulse-light {
+    0% {
+        opacity: 0.75;
+        transform: scale(1);
+        box-shadow: 0 0 8px currentColor;
+    }
+
+    50% {
+        opacity: 1;
+        transform: scale(1.08);
+        box-shadow: 0 0 25px currentColor;
+    }
+
+    100% {
+        opacity: 0.75;
+        transform: scale(1);
+        box-shadow: 0 0 8px currentColor;
+    }
+}
+
+.progress-indicator p {
+    margin: 0;
+    font-weight: 600;
+    color: #1f2430;
+}

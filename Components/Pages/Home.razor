@@ -11,6 +11,7 @@
 @inject UserService UserService
 @inject ReportPdfService ReportPdfService
 @inject QuoteService QuoteService
+@inject DailyTaskService DailyTaskService
 @inject IJSRuntime JS
 @inject ApplicationDbContext DbContext
 
@@ -62,6 +63,38 @@
                     <p class="card-link"><a href="calculator">Set one on the calculator</a></p>
                 }
             </section>
+            <section class="card">
+                <h3>Today's Tasks</h3>
+
+                @if (dailyTasks.Any())
+                {
+                    <ul class="daily-tasks">
+                        @foreach (var task in dailyTasks)
+                        {
+                            <li>
+                                <input type="checkbox" checked="@task.Completed" @onchange="() => ToggleTask(task)" />
+
+                                <div class="task-content">
+                                    <strong>@task.DailyTask.Title</strong>
+
+                                    @if (!string.IsNullOrEmpty(task.DailyTask.Description))
+                                    {
+                                        <div class="task-description">
+                                            @task.DailyTask.Description
+                                        </div>
+                                    }
+                                </div>
+                            </li>
+                        }
+                    </ul>
+                }
+                else
+                {
+                    <p class="empty">
+                        No daily tasks created yet.
+                    </p>
+                }
+            </section>
         </div>
 
         <section class="card logs-card">
@@ -106,6 +139,7 @@
     private User? currentUser;
     private CalorieGoal? goal;
     private List<FoodLogEntry> foodLogs = new();
+    private List<DailyTaskCompletion> dailyTasks = new();
 
 
     protected override async Task OnInitializedAsync()
@@ -125,6 +159,11 @@
 
             if (currentUser != null)
             {
+                await DailyTaskService.EnsureTodaysTasksExistAsync(currentUser.UserId);
+
+                dailyTasks =
+                    await DailyTaskService.GetTodaysTasksAsync(currentUser.UserId);
+                
                 goal =
                     await DbContext.CalorieGoals
                         .FirstOrDefaultAsync(
@@ -177,5 +216,13 @@
     protected override void OnInitialized()
     {
         quote = QuoteService.GetRandomQuote();
+    }
+
+    private async Task ToggleTask(DailyTaskCompletion task)
+    {
+        await DailyTaskService.ToggleCompletionAsync(
+            task.DailyTaskCompletionId);
+
+        task.Completed = !task.Completed;
     }
 }

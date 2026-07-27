@@ -48,6 +48,9 @@ builder.Services.AddScoped<ReportPdfService>();
 // This feature stores motivational quotes on fitness and chooses one at random to display on the home page.
 builder.Services.AddSingleton<QuoteService>();
 
+// This feature allows the user to create daily tasks and tracks them and allows the LED display to return a result on the status of the tasks, meaning Green for all tasks done, Yellow for some tasks completed and red for no tasks completed.
+builder.Services.AddScoped<DailyTaskService>();
+
 // Add services to the container.
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();

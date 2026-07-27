@@ -5,6 +5,7 @@
 @using Microsoft.EntityFrameworkCore
 @using Microsoft.AspNetCore.Components.Authorization
 @using the_fitness_assistant.Models
+@using the_fitness_assistant.Models.Enums
 @using the_fitness_assistant.Services
 
 @inject AuthenticationStateProvider AuthenticationStateProvider
@@ -72,7 +73,7 @@
                         @foreach (var task in dailyTasks)
                         {
                             <li>
-                                <input type="checkbox" checked="@task.Completed" @onchange="() => ToggleTask(task)" />
+                                <input type="checkbox" checked="@task.Completed" @onchange="async () => await ToggleTask(task)" />
 
                                 <div class="task-content">
                                     <strong>@task.DailyTask.Title</strong>
@@ -93,6 +94,33 @@
                     <p class="empty">
                         No daily tasks created yet.
                     </p>
+                }
+            </section>
+            <section class="card">
+                <h3>Daily Progress</h3>
+
+                @switch (progressStatus)
+                {
+                    case DailyProgressStatus.NoProgress:
+                        <div class="progress-indicator red">
+                            🔴
+                            <p>No tasks completed yet</p>
+                        </div>
+                        break;
+
+                    case DailyProgressStatus.InProgress:
+                        <div class="progress-indicator yellow">
+                            🟡
+                            <p>Keep going!</p>
+                        </div>
+                        break;
+
+                    case DailyProgressStatus.Completed:
+                        <div class="progress-indicator green">
+                            🟢
+                            <p>All tasks complete!</p>
+                        </div>
+                        break;
                 }
             </section>
         </div>
@@ -119,17 +147,19 @@
             }
         </section>
     }
-    <button class="btn btn-primary" @onclick="GenerateReport">
-        Download PDF Report
-    </button>
+    <section class="dashboard-actions">
+        <button class="report-button" @onclick="GenerateReport">
+            Download PDF Report
+        </button>
+    </section>
 
-    <div>
+    <section class="card inspiration-card">
         <h3>Daily Inspiration</h3>
 
         <p class="quote">
             @quote
         </p>
-    </div>
+    </section>
 </div>
 
 
@@ -140,6 +170,8 @@
     private CalorieGoal? goal;
     private List<FoodLogEntry> foodLogs = new();
     private List<DailyTaskCompletion> dailyTasks = new();
+
+    private DailyProgressStatus progressStatus;
 
 
     protected override async Task OnInitializedAsync()
@@ -163,6 +195,9 @@
 
                 dailyTasks =
                     await DailyTaskService.GetTodaysTasksAsync(currentUser.UserId);
+
+                progressStatus =
+                    await DailyTaskService.GetProgressStatusAsync(currentUser.UserId);
                 
                 goal =
                     await DbContext.CalorieGoals
@@ -223,6 +258,12 @@
         await DailyTaskService.ToggleCompletionAsync(
             task.DailyTaskCompletionId);
 
-        task.Completed = !task.Completed;
+        dailyTasks =
+            await DailyTaskService.GetTodaysTasksAsync(
+                currentUser!.UserId);
+
+        progressStatus =
+            await DailyTaskService.GetProgressStatusAsync(
+                currentUser.UserId);
     }
 }

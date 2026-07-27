@@ -102,22 +102,22 @@
                 @switch (progressStatus)
                 {
                     case DailyProgressStatus.NoProgress:
-                        <div class="progress-indicator red">
-                            🔴
+                        <div class="progress-indicator">
+                            <div class="status-light red"></div>
                             <p>No tasks completed yet</p>
                         </div>
                         break;
 
                     case DailyProgressStatus.InProgress:
-                        <div class="progress-indicator yellow">
-                            🟡
+                        <div class="progress-indicator">
+                            <div class="status-light yellow"></div>
                             <p>Keep going!</p>
                         </div>
                         break;
 
                     case DailyProgressStatus.Completed:
-                        <div class="progress-indicator green">
-                            🟢
+                        <div class="progress-indicator">
+                            <div class="status-light green"></div>
                             <p>All tasks complete!</p>
                         </div>
                         break;

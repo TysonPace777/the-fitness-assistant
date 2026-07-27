@@ -270,3 +270,65 @@
     color: #6b7280;
     margin-top: 0.2rem;
 }
+
+/* Daily progress LED indicator */
+
+/* Daily progress LED indicator */
+
+.progress-indicator {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+}
+
+.status-light {
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    margin-bottom: 0.75rem;
+    animation: pulse-light 1.8s infinite;
+}
+
+.status-light.red {
+    background-color: #dc2626;
+    color: #dc2626;
+}
+
+.status-light.yellow {
+    background-color: #eab308;
+    color: #eab308;
+}
+
+.status-light.green {
+    background-color: #16a34a;
+    color: #16a34a;
+}
+
+
+@keyframes pulse-light {
+    0% {
+        opacity: 0.75;
+        transform: scale(1);
+        box-shadow: 0 0 8px currentColor;
+    }
+
+    50% {
+        opacity: 1;
+        transform: scale(1.08);
+        box-shadow: 0 0 25px currentColor;
+    }
+
+    100% {
+        opacity: 0.75;
+        transform: scale(1);
+        box-shadow: 0 0 8px currentColor;
+    }
+}
+
+.progress-indicator p {
+    margin: 0;
+    font-weight: 600;
+    color: #1f2430;
+}

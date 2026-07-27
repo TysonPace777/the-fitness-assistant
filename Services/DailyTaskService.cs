@@ -113,7 +113,22 @@ public class DailyTaskService
 
     public async Task CreateTaskAsync(DailyTask task)
     {
+        task.IsActive = true;
+
         _context.DailyTasks.Add(task);
+
+        await _context.SaveChangesAsync();
+
+
+        // Create today's completion record
+        var completion = new DailyTaskCompletion
+        {
+            DailyTaskId = task.DailyTaskId,
+            Date = DateOnly.FromDateTime(DateTime.Today),
+            Completed = false
+        };
+
+        _context.DailyTaskCompletions.Add(completion);
 
         await _context.SaveChangesAsync();
     }
@@ -127,6 +142,33 @@ public class DailyTaskService
             return;
 
         task.IsActive = false;
+
+        await _context.SaveChangesAsync();
+    }
+
+    public async Task<List<DailyTask>> GetUserTasksAsync(int userId)
+    {
+        return await _context.DailyTasks
+            .Where(t =>
+                t.UserId == userId &&
+                t.IsActive)
+            .OrderBy(t => t.DisplayOrder)
+            .ToListAsync();
+    }
+
+    public async Task UpdateTaskAsync(DailyTask task)
+    {
+        var existingTask = await _context.DailyTasks
+            .FirstOrDefaultAsync(t =>
+                t.DailyTaskId == task.DailyTaskId);
+
+        if (existingTask == null)
+            return;
+
+
+        existingTask.Title = task.Title;
+        existingTask.Description = task.Description;
+        existingTask.DisplayOrder = task.DisplayOrder;
 
         await _context.SaveChangesAsync();
     }

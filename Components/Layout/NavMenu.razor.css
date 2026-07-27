@@ -89,6 +89,15 @@
     display: block;
 }
 
+.nav-icon {
+    font-size: 1.25rem;
+    width: 1.75rem;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    margin-right: 0.5rem;
+}
+
 @media (min-width: 641px) {
     .navbar-toggler {
         display: none;

@@ -1,14 +1,30 @@
 @page "/tracker"
 @attribute [Authorize]
 
+@rendermode InteractiveServer
+
+@using Microsoft.EntityFrameworkCore
+@using the_fitness_assistant.Data
+@using the_fitness_assistant.Models
+@using System.Security.Claims
+@using Microsoft.AspNetCore.Components.Authorization
+@using the_fitness_assistant.Services
+
+@inject UserService UserService
+@inject AuthenticationStateProvider AuthenticationStateProvider
+
+@inject ApplicationDbContext Context
+
 <PageTitle>Meal Tracker</PageTitle>
 
 <h1>Meal Tracker</h1>
 
 <div class="dates">
-    <button>⬅️</button>
-    <div class="selected-date">XX/XX/XXXX</div>
-    <button>➡️</button>
+    <button @onclick="PreviousDay">⬅️</button>
+    <div class="selected-date">
+        @selectedDate.ToString("MM/dd/yyyy")
+    </div>
+    <button @onclick="NextDay">➡️</button>
 </div>
     
 
@@ -19,48 +35,330 @@
                 <th>Breakfast</th>
                 <td>
                     <ul>
-                        <li>food 1</li>
+                    @foreach (var entry in GetMeal("Breakfast"))
+                    {
+                        <li class="food-delete">
+                            @entry.Food.Name (@entry.Servings serving(s))
+
+                            <button @onclick="() => DeleteFood(entry)">
+                                🗑️
+                            </button>
+                        </li>
+                    }
                     </ul>
                 </td>
-                <td><button>Add Food</button></td>
-                <td>(Calorie Total)</td>
+                <td>
+                    <button @onclick='() => OpenFoodForm("Breakfast")'>
+                        Add Food
+                    </button>
+                </td>
+                <td>@GetMealCalories("Breakfast")</td>
                 
             </tr>
             <tr>
                 <th>Lunch</th>
                 <td>
                     <ul>
-                        <li>food 1</li>
+                        @foreach (var entry in GetMeal("Lunch"))
+                        {
+                            <li class="food-delete">
+                                @entry.Food.Name (@entry.Servings serving(s))
+
+                                <button @onclick="() => DeleteFood(entry)">
+                                    🗑️
+                                </button>
+                            </li>
+                        }
                     </ul>
                 </td>
-                <td><button>Add Food</button></td>
+                <td>
+                    <button @onclick='() => OpenFoodForm("Lunch")'>
+                        Add Food
+                    </button>
+                </td>
                 <td>(Calorie Total)</td>
             </tr>
             <tr>
                 <th>Dinner</th>
                 <td>
                     <ul>
-                        <li>food 1</li>
+                        @foreach (var entry in GetMeal("Dinner"))
+                        {
+                            <li class="food-delete">
+                                @entry.Food.Name (@entry.Servings serving(s))
+
+                                <button @onclick="() => DeleteFood(entry)">
+                                    🗑️
+                                </button>
+                            </li>
+                        }
                     </ul>
                 </td>
-                <td><button>Add Food</button></td>
+                <td>
+                    <button @onclick='() => OpenFoodForm("Dinner")'>
+                        Add Food
+                    </button>
+                </td>
                 <td>(Calorie Total)</td>
             </tr>
             <tr>
                 <th>Snacks</th>
                 <td>
                     <ul>
-                        <li>food 1</li>
+                        @foreach (var entry in GetMeal("Snacks"))
+                        {
+                            <li class="food-delete">
+                                @entry.Food.Name (@entry.Servings serving(s))
+
+                                <button @onclick="() => DeleteFood(entry)">
+                                    🗑️
+                                </button>
+                            </li>
+                        }
                     </ul>
                 </td>
-                <td><button>Add Food</button></td>
+                <td>
+                    <button @onclick='() => OpenFoodForm("Snacks")'>
+                        Add Food
+                    </button>
+                </td>
                 <td>(Calorie Total)</td>
             </tr>
         </tbody>
     </table>
 </div>
 
-<div class="cal-total">-Calorie Total for the day here-</div>
+<div class="cal-total">
+    Total Calories: @GetDailyCalories()
+</div>
+
+@if (showFoodForm)
+{
+    <div class="food-form">
+        <h3>Add Food to @selectedMeal</h3>
+
+        <button @onclick="CloseFoodForm">
+            Cancel
+        </button>
+    </div>
+
+    <div class="search">
+        <input
+            @bind="searchText"
+            placeholder="Search foods..." />
+
+        <button @onclick="SearchFoods">
+            Search
+        </button>
+    </div>
+
+    @if (searchResults.Any())
+    {
+        <ul>
+            <h4 class="results">Results</h4>
+            @foreach (var food in searchResults)
+            {
+                
+                <li>
+                    
+                    <strong>@food.Name</strong><br />
+                    @food.Calories calories
+                    (@food.ServingSize)
+
+                    <button @onclick="() => SelectFood(food)">
+                        Add
+                    </button>
+                </li>
+            }
+        </ul>
+    }
+
+    @if (selectedFood != null)
+    {
+        <div class="search">
+            <hr />
+
+            <h4>@selectedFood.Name</h4>
+
+            <label>Servings</label>
+
+            <InputNumber @bind-Value="servings" />
+
+            <button @onclick="SaveFoodEntry">
+                Add To @selectedMeal
+            </button>
+        </div>
+    }
+}
+
+<div class="bottom">(Dates are based on UTC time)</div>
+
+@code {
+    private string searchText = "";
+    private List<Food> searchResults = new();
+    private List<FoodLogEntry> foodEntries = new();
+
+    private Food? selectedFood;
+    private double servings = 1;
+
+    private DateTime selectedDate = DateTime.UtcNow.Date;
+
+    private async Task PreviousDay()
+    {
+        selectedDate = selectedDate.AddDays(-1);
+        await LoadFoodEntries();
+    }
+
+    private async Task NextDay()
+    {
+        selectedDate = selectedDate.AddDays(1);
+        await LoadFoodEntries();
+    }
+
+    private async Task LoadFoodEntries()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var principal = authState.User;
+
+        var currentUser = await UserService.EnsureUserExistsAsync(principal);
+
+        int userId = currentUser.UserId;
+
+        var start = selectedDate.Date;
+        var end = start.AddDays(1);
+
+        foodEntries = await Context.FoodLogEntries
+            .Include(f => f.Food)
+            .Where(f =>
+                f.UserId == userId &&
+                f.LogDate >= start &&
+                f.LogDate < end)
+            .ToListAsync();
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var principal = authState.User;
+
+        var currentUser = await UserService.EnsureUserExistsAsync(principal);
+
+        int userId = currentUser.UserId;
+
+        var today = DateTime.UtcNow.Date;
+        var tomorrow = today.AddDays(1);
+
+        foodEntries = await Context.FoodLogEntries
+            .Include(f => f.Food)
+            .Where(f =>
+                f.UserId == userId &&
+                f.LogDate >= today &&
+                f.LogDate < tomorrow)
+            .ToListAsync();
+    }
+
+    private IEnumerable<FoodLogEntry> GetMeal(string meal)
+    {
+        return foodEntries.Where(f => f.MealType == meal);
+    }
+
+    private double GetMealCalories(string meal)
+    {
+        return foodEntries
+            .Where(f => f.MealType == meal)
+            .Sum(f => f.Food.Calories * f.Servings);
+    }
+
+    private readonly string[] meals =
+    {
+        "Breakfast",
+        "Lunch",
+        "Dinner",
+        "Snacks"
+    };
+
+    private double GetDailyCalories()
+    {
+        return foodEntries.Sum(f => f.Food.Calories * f.Servings);
+    }
+
+    private string? selectedMeal;
+    private bool showFoodForm = false;
+
+    private void OpenFoodForm(string meal)
+    {
+        selectedMeal = meal;
+        showFoodForm = true;
+    }
+
+    private void CloseFoodForm()
+    {
+        selectedMeal = null;
+        showFoodForm = false;
+    }
+
+    private async Task SearchFoods()
+    {
+        if (string.IsNullOrWhiteSpace(searchText))
+        {
+            searchResults.Clear();
+            return;
+        }
+
+        searchResults = await Context.Foods
+            .Where(f => EF.Functions.ILike(f.Name, $"%{searchText}%"))
+            .OrderBy(f => f.Name)
+            .Take(15)
+            .ToListAsync();
+    }
+
+    private void SelectFood(Food food)
+    {
+        selectedFood = food;
+        servings = 1;
+    }
+
+    private async Task DeleteFood(FoodLogEntry entry)
+    {
+        Context.FoodLogEntries.Remove(entry);
+
+        await Context.SaveChangesAsync();
+
+        foodEntries.Remove(entry);
+    }
+
+    private async Task SaveFoodEntry()
+    {
+        var authState =
+            await AuthenticationStateProvider.GetAuthenticationStateAsync();
+
+        var currentUser =
+            await UserService.EnsureUserExistsAsync(authState.User);
+
+        var entry = new FoodLogEntry
+        {
+            UserId = currentUser.UserId,
+            FoodId = selectedFood!.FoodId,
+            LogDate = DateTime.UtcNow,
+            MealType = selectedMeal!,
+            Servings = servings
+        };
+
+        Context.FoodLogEntries.Add(entry);
+
+        await Context.SaveChangesAsync();
+
+        entry.Food = selectedFood;
+
+        foodEntries.Add(entry);
+
+        selectedFood = null;
+        searchResults.Clear();
+        searchText = "";
+
+        CloseFoodForm();
+    }
+}
 
 @*The button for adding food will bring a form to either choose
 from a list or add your own food to the database*@

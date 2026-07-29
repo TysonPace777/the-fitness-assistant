@@ -79,3 +79,29 @@ li {
     justify-self: center;
     padding: 10px;
 }
+
+.food-delete {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+}
+
+.food-form, .search {
+    display: flex;
+    flex-direction: column;
+    padding: 10px;
+    gap: 3px;
+    justify-self: center;
+    text-align: center;
+}
+
+.results {
+    text-align: center;
+    text-decoration: underline;
+}
+
+.bottom {
+    justify-self: center;
+    padding-top: 15px;
+}

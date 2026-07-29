@@ -20,9 +20,11 @@
 <h1>Meal Tracker</h1>
 
 <div class="dates">
-    <button>⬅️</button>
-    <div class="selected-date">XX/XX/XXXX</div>
-    <button>➡️</button>
+    <button @onclick="PreviousDay">⬅️</button>
+    <div class="selected-date">
+        @selectedDate.ToString("MM/dd/yyyy")
+    </div>
+    <button @onclick="NextDay">➡️</button>
 </div>
     
 
@@ -35,8 +37,12 @@
                     <ul>
                     @foreach (var entry in GetMeal("Breakfast"))
                     {
-                        <li>
+                        <li class="food-delete">
                             @entry.Food.Name (@entry.Servings serving(s))
+
+                            <button @onclick="() => DeleteFood(entry)">
+                                🗑️
+                            </button>
                         </li>
                     }
                     </ul>
@@ -53,7 +59,16 @@
                 <th>Lunch</th>
                 <td>
                     <ul>
-                        <li>food 1</li>
+                        @foreach (var entry in GetMeal("Lunch"))
+                        {
+                            <li class="food-delete">
+                                @entry.Food.Name (@entry.Servings serving(s))
+
+                                <button @onclick="() => DeleteFood(entry)">
+                                    🗑️
+                                </button>
+                            </li>
+                        }
                     </ul>
                 </td>
                 <td>
@@ -67,7 +82,16 @@
                 <th>Dinner</th>
                 <td>
                     <ul>
-                        <li>food 1</li>
+                        @foreach (var entry in GetMeal("Dinner"))
+                        {
+                            <li class="food-delete">
+                                @entry.Food.Name (@entry.Servings serving(s))
+
+                                <button @onclick="() => DeleteFood(entry)">
+                                    🗑️
+                                </button>
+                            </li>
+                        }
                     </ul>
                 </td>
                 <td>
@@ -81,7 +105,16 @@
                 <th>Snacks</th>
                 <td>
                     <ul>
-                        <li>food 1</li>
+                        @foreach (var entry in GetMeal("Snacks"))
+                        {
+                            <li class="food-delete">
+                                @entry.Food.Name (@entry.Servings serving(s))
+
+                                <button @onclick="() => DeleteFood(entry)">
+                                    🗑️
+                                </button>
+                            </li>
+                        }
                     </ul>
                 </td>
                 <td>
@@ -108,10 +141,100 @@
             Cancel
         </button>
     </div>
+
+    <div class="search">
+        <input
+            @bind="searchText"
+            placeholder="Search foods..." />
+
+        <button @onclick="SearchFoods">
+            Search
+        </button>
+    </div>
+
+    @if (searchResults.Any())
+    {
+        <ul>
+            <h4 class="results">Results</h4>
+            @foreach (var food in searchResults)
+            {
+                
+                <li>
+                    
+                    <strong>@food.Name</strong><br />
+                    @food.Calories calories
+                    (@food.ServingSize)
+
+                    <button @onclick="() => SelectFood(food)">
+                        Add
+                    </button>
+                </li>
+            }
+        </ul>
+    }
+
+    @if (selectedFood != null)
+    {
+        <div class="search">
+            <hr />
+
+            <h4>@selectedFood.Name</h4>
+
+            <label>Servings</label>
+
+            <InputNumber @bind-Value="servings" />
+
+            <button @onclick="SaveFoodEntry">
+                Add To @selectedMeal
+            </button>
+        </div>
+    }
 }
 
+<div class="bottom">(Dates are based on UTC time)</div>
+
 @code {
+    private string searchText = "";
+    private List<Food> searchResults = new();
     private List<FoodLogEntry> foodEntries = new();
+
+    private Food? selectedFood;
+    private double servings = 1;
+
+    private DateTime selectedDate = DateTime.UtcNow.Date;
+
+    private async Task PreviousDay()
+    {
+        selectedDate = selectedDate.AddDays(-1);
+        await LoadFoodEntries();
+    }
+
+    private async Task NextDay()
+    {
+        selectedDate = selectedDate.AddDays(1);
+        await LoadFoodEntries();
+    }
+
+    private async Task LoadFoodEntries()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var principal = authState.User;
+
+        var currentUser = await UserService.EnsureUserExistsAsync(principal);
+
+        int userId = currentUser.UserId;
+
+        var start = selectedDate.Date;
+        var end = start.AddDays(1);
+
+        foodEntries = await Context.FoodLogEntries
+            .Include(f => f.Food)
+            .Where(f =>
+                f.UserId == userId &&
+                f.LogDate >= start &&
+                f.LogDate < end)
+            .ToListAsync();
+    }
 
     protected override async Task OnInitializedAsync()
     {
@@ -172,6 +295,68 @@
     {
         selectedMeal = null;
         showFoodForm = false;
+    }
+
+    private async Task SearchFoods()
+    {
+        if (string.IsNullOrWhiteSpace(searchText))
+        {
+            searchResults.Clear();
+            return;
+        }
+
+        searchResults = await Context.Foods
+            .Where(f => EF.Functions.ILike(f.Name, $"%{searchText}%"))
+            .OrderBy(f => f.Name)
+            .Take(15)
+            .ToListAsync();
+    }
+
+    private void SelectFood(Food food)
+    {
+        selectedFood = food;
+        servings = 1;
+    }
+
+    private async Task DeleteFood(FoodLogEntry entry)
+    {
+        Context.FoodLogEntries.Remove(entry);
+
+        await Context.SaveChangesAsync();
+
+        foodEntries.Remove(entry);
+    }
+
+    private async Task SaveFoodEntry()
+    {
+        var authState =
+            await AuthenticationStateProvider.GetAuthenticationStateAsync();
+
+        var currentUser =
+            await UserService.EnsureUserExistsAsync(authState.User);
+
+        var entry = new FoodLogEntry
+        {
+            UserId = currentUser.UserId,
+            FoodId = selectedFood!.FoodId,
+            LogDate = DateTime.UtcNow,
+            MealType = selectedMeal!,
+            Servings = servings
+        };
+
+        Context.FoodLogEntries.Add(entry);
+
+        await Context.SaveChangesAsync();
+
+        entry.Food = selectedFood;
+
+        foodEntries.Add(entry);
+
+        selectedFood = null;
+        searchResults.Clear();
+        searchText = "";
+
+        CloseFoodForm();
     }
 }
 

@@ -1,4 +1,4 @@
-﻿@inherits LayoutComponentBase
+@inherits LayoutComponentBase
 
 <div class="page">
     <div class="sidebar">
@@ -7,7 +7,26 @@
 
     <main>
         <article class="content px-4">
-            @Body
+            <ErrorBoundary>
+                <ChildContent>
+                    @Body
+                </ChildContent>
+
+                <ErrorContent>
+                    <div class="page-error">
+                        <h1>Something went wrong</h1>
+
+                        <p>
+                            This page hit an unexpected error. The rest of the
+                            app is still working.
+                        </p>
+
+                        <a class="page-error-btn" href="" data-enhance-nav="false">
+                            Reload
+                        </a>
+                    </div>
+                </ErrorContent>
+            </ErrorBoundary>
         </article>
     </main>
 </div>
@@ -17,3 +36,4 @@
     <a href="." class="reload">Reload</a>
     <span class="dismiss">🗙</span>
 </div>
+

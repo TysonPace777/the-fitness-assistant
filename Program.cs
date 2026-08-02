@@ -42,6 +42,9 @@ builder.Services.AddScoped<UserService>();
 // This Seeder service auto fills the users account with data for demo purposes
 builder.Services.AddScoped<DemoDataSeeder>();
 
+// Food library: search, create, edit and delete foods.
+builder.Services.AddScoped<FoodService>();
+
 // This helps create the PDF for the dashboard report generator
 builder.Services.AddScoped<ReportPdfService>();
 
@@ -149,7 +152,8 @@ app.MapRazorComponents<App>()
 //     DbSeeder.Seed(db);
 // }
 
-Console.WriteLine(builder.Configuration["Authentication:Google:ClientId"]);
-Console.WriteLine(builder.Configuration["Authentication:Google:ClientSecret"]?.Length);
+// The Google client id and secret length used to be written to the console on
+// every start. Render captures stdout, so that put credential material into the
+// deployment logs. Removed.
 
 app.Run();

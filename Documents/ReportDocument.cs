@@ -34,6 +34,10 @@ public class ReportDocument : IDocument
                 col.Item().Text($"Welcome, {_report.User.DisplayName}!")
                     .FontSize(18)
                     .Bold();
+
+                col.Item().Text($"Generated {DateTime.Now:dddd, d MMMM yyyy}")
+                    .FontSize(10)
+                    .FontColor(Colors.Grey.Darken1);
             });
 
             page.Content().Column(col =>
@@ -59,12 +63,95 @@ public class ReportDocument : IDocument
                     col.Item().Text(
                         $"Goal: {GoalTypes.ToDisplayName(_report.CalorieGoal.GoalType)}");
                 }
+                else
+                {
+                    col.Item().Text("Calorie Goal: not set")
+                        .FontColor(Colors.Grey.Darken1);
+                }
 
-                col.Item().PaddingVertical(15);
+                col.Item().PaddingVertical(10);
+
+                // ---- Today against the goal ----
+
+                col.Item().Text("Today")
+                    .FontSize(18)
+                    .Bold();
+
+                col.Item().Text($"Logged today: {_report.TodayCalories} cal");
+
+                if (_report.CalorieGoal != null)
+                {
+                    int remaining = NutritionMath.RemainingCalories(
+                        _report.TodayCalories,
+                        _report.CalorieGoal.DailyCalories);
+
+                    if (remaining >= 0)
+                    {
+                        col.Item().Text($"Remaining: {remaining} cal");
+                    }
+                    else
+                    {
+                        col.Item()
+                            .Text($"Over goal by {Math.Abs(remaining)} cal")
+                            .FontColor(Colors.Red.Darken2);
+                    }
+                }
+
+                col.Item().PaddingVertical(10);
+
+                // ---- Last seven days ----
+
+                col.Item().Text("Last 7 Days")
+                    .FontSize(18)
+                    .Bold();
+
+                if (_report.WeeklySummary.Any(d => d.Calories > 0))
+                {
+                    foreach (var day in _report.WeeklySummary)
+                    {
+                        col.Item().Row(row =>
+                        {
+                            row.RelativeItem()
+                                .Text($"{day.Date:ddd d MMM}");
+
+                            row.ConstantItem(90)
+                                .AlignRight()
+                                .Text($"{day.Calories} cal");
+                        });
+                    }
+
+                    var loggedDays = _report.WeeklySummary
+                        .Where(d => d.Calories > 0)
+                        .ToList();
+
+                    int average = (int)Math.Round(loggedDays.Average(d => d.Calories));
+
+                    col.Item()
+                        .PaddingTop(4)
+                        .Text($"Daily average: {average} cal over {loggedDays.Count} logged day(s)")
+                        .FontColor(Colors.Grey.Darken2);
+                }
+                else
+                {
+                    col.Item()
+                        .Text("Nothing logged in the last seven days.")
+                        .FontColor(Colors.Grey.Darken1);
+                }
+
+                col.Item().PaddingVertical(10);
+
+                // ---- Recent entries ----
 
                 col.Item().Text("Recent Food Logs")
                     .FontSize(18)
                     .Bold();
+
+                if (!_report.RecentFoodLogs.Any())
+                {
+                    col.Item()
+                        .Text("No food logs yet.")
+                        .FontColor(Colors.Grey.Darken1);
+                }
 
                 foreach (var log in _report.RecentFoodLogs)
                 {
@@ -73,11 +160,15 @@ public class ReportDocument : IDocument
                         food.Item().Text(log.LogDate.ToShortDateString())
                             .Bold();
 
-                        food.Item().Text(log.MealType);
+                        food.Item().Text(MealTypes.ToDisplayName(log.MealType));
 
-                        food.Item().Text(log.Food.Name);
+                        food.Item().Text(log.Food?.Name ?? "Unknown food");
 
-                        food.Item().Text($"{log.Food.Calories} cal");
+                        // Servings are now reflected in the calorie figure so
+                        // the PDF agrees with the dashboard.
+                        food.Item().Text(
+                            $"{NutritionMath.FormatServings(log.Servings)} " +
+                            $"\u2014 {NutritionMath.CaloriesFor(log)} cal");
                     });
                 }
             });

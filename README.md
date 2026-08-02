@@ -16,6 +16,37 @@ Some people can read War and Peace and come away thinking it's a simple adventur
 
 
 __________________________
+__________________________
+Application Pages
+
+- `/`           Dashboard: profile summary, calorie goal, today's progress
+                against the goal, a seven-day calorie chart, recent logs, and
+                the PDF report download.
+- `/tracker`    Meal tracker (day-by-day food logging).
+- `/foods`      Food library: search the shared catalogue plus your own foods,
+                and add, edit or delete the ones you created.
+- `/calculator` Mifflin-St Jeor calorie calculator; the result can be saved as
+                your goal.
+- `/profile`    Edit display name, height, weight and age.
+
+Notes:
+
+- Calorie totals go through `Services/NutritionMath.cs`. Every page and the
+  PDF report use it, so serving counts are applied consistently. Log entries
+  written before `Servings` was populated are treated as one serving.
+- Foods with a null `CreatedByUserId` are shared with all users. Foods with a
+  user id can only be edited or deleted by that user, and a food that is still
+  referenced by a log entry cannot be deleted (the cascade would otherwise
+  silently delete the user's history).
+- Meal names go through `Services/MealTypes.cs`. The seeder previously wrote
+  "Snack" while the tracker row is labelled "Snacks"; `MealTypes.Matches` and
+  `MealTypes.ToDisplayName` map the old singular rows onto "Snacks", so no
+  existing data has to be rewritten.
+- The dashboard groups days by the viewer's local date. `LogDate` is stored as
+  "timestamp with time zone" and returns as UTC, so the query cutoff is
+  converted back to UTC and the grouping uses `NutritionMath.LocalDay`.
+- No database migration is required for these changes; no schema was altered.
+
 Hosted Production Site
 
 ## https://the-fitness-assistant.onrender.com

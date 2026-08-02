@@ -2,26 +2,23 @@
 
 <AuthorizeView>
     <Authorized>
-        <p style="color:white;">
-            Logged in as:
-            @context.User.Identity?.Name
-        </p>
+        <div class="login-box">
+            <span class="login-label">Signed in as</span>
+            <span class="login-name">@context.User.Identity?.Name</span>
 
-        <p style="color:white;">
-            Authentication type:
-            @context.User.Identity?.AuthenticationType
-        </p>
-
-        <form method="post" action="/logout" data-enhance="false">
-            <button type="submit">Logout</button>
-        </form>
+            <form method="post" action="/logout" data-enhance="false">
+                <button type="submit" class="login-btn">Logout</button>
+            </form>
+        </div>
     </Authorized>
 
     <NotAuthorized>
-        <p style="color:white;">You are not logged in.</p>
+        <div class="login-box">
+            <span class="login-label">Not signed in</span>
 
-        <a href="/login" data-enhance-nav="false">
-            Login with Google
-        </a>
+            <a class="login-btn" href="/login" data-enhance-nav="false">
+                Login with Google
+            </a>
+        </div>
     </NotAuthorized>
 </AuthorizeView>

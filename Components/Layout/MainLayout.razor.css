@@ -96,3 +96,40 @@ main {
         right: 0.75rem;
         top: 0.5rem;
     }
+
+/* ---- Added: page-level error boundary ---- */
+
+.page-error {
+    max-width: 600px;
+    margin: 2rem auto;
+    padding: 1.5rem;
+    border: 1px solid #e59a9a;
+    border-radius: 10px;
+    background-color: #fdecec;
+    text-align: center;
+}
+
+.page-error h1 {
+    color: #7f1d1d;
+    font-size: 1.5rem;
+    margin-top: 0;
+}
+
+.page-error p {
+    color: #7f1d1d;
+}
+
+.page-error-btn {
+    margin-top: 0.75rem;
+    padding: 0.5rem 1.25rem;
+    border: none;
+    border-radius: 6px;
+    background-color: #b32121;
+    color: #fff;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.page-error-btn:hover {
+    background-color: #8f1a1a;
+}

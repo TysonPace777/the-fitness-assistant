@@ -1,4 +1,5 @@
-﻿@using Microsoft.AspNetCore.Components.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
+@using the_fitness_assistant.Components.Pages
 
 <CascadingAuthenticationState>
     <Router AppAssembly="typeof(Program).Assembly">
@@ -7,14 +8,36 @@
             <AuthorizeRouteView RouteData="routeData" DefaultLayout="typeof(Layout.MainLayout)">
 
                 <NotAuthorized>
-                    <p>You are not authorized to view this page.</p>
-                    <a href="/login">Login with Google</a>
+                    <div class="auth-required">
+                        <h1>Sign in to continue</h1>
+
+                        <p>
+                            This page is only available once you are signed in
+                            with Google.
+                        </p>
+
+                        <a class="auth-required-btn"
+                           href="/login"
+                           data-enhance-nav="false">
+                            Login with Google
+                        </a>
+                    </div>
                 </NotAuthorized>
+
+                <Authorizing>
+                    <p class="auth-checking">Checking your sign-in...</p>
+                </Authorizing>
 
             </AuthorizeRouteView>
 
             <FocusOnNavigate RouteData="routeData" Selector="h1" />
         </Found>
+
+        <NotFound>
+            <LayoutView Layout="typeof(Layout.MainLayout)">
+                <PageNotFound />
+            </LayoutView>
+        </NotFound>
 
     </Router>
 </CascadingAuthenticationState>

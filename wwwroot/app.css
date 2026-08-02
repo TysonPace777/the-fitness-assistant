@@ -58,3 +58,48 @@ h1:focus {
 .form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
     text-align: start;
 }
+/* ---- Added: shared not-authorized / authorizing states used by Routes.razor.
+   These live in app.css rather than a scoped file because Routes.razor
+   fragments render outside any component's CSS isolation scope. ---- */
+
+.auth-required {
+    max-width: 520px;
+    margin: 3rem auto;
+    padding: 2rem;
+    border: 1px solid #d7dce5;
+    border-radius: 10px;
+    text-align: center;
+}
+
+.auth-required h1 {
+    color: #052767;
+    font-size: 1.5rem;
+    margin-top: 0;
+}
+
+.auth-required p {
+    color: #4b5563;
+}
+
+.auth-required-btn {
+    display: inline-block;
+    margin-top: 1rem;
+    padding: 0.6rem 1.5rem;
+    border-radius: 6px;
+    background-color: #052767;
+    color: #fff;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.auth-required-btn:hover {
+    background-color: #1056d8;
+    color: #fff;
+}
+
+.auth-checking {
+    text-align: center;
+    color: #6b7280;
+    font-style: italic;
+    margin-top: 2rem;
+}

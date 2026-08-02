@@ -1,0 +1,363 @@
+@page "/foods"
+@attribute [Authorize]
+
+@rendermode InteractiveServer
+
+@using System.ComponentModel.DataAnnotations
+
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject UserService UserService
+@inject FoodService FoodService
+
+<PageTitle>Food Library</PageTitle>
+
+<h1>Food Library</h1>
+
+<p class="page-intro">
+    Everything you can log on the <a href="tracker">tracker</a>. Shared foods
+    are available to everyone; foods you add are yours alone.
+</p>
+
+@if (loadFailed)
+{
+    <div class="notice notice-error">
+        We could not load your food library. Refresh the page, and if it keeps
+        happening try signing out and back in.
+    </div>
+}
+else if (currentUser == null)
+{
+    <p class="loading">Loading...</p>
+}
+else
+{
+    <div class="food-toolbar">
+        <input class="food-search"
+               type="search"
+               placeholder="Search foods..."
+               value="@searchTerm"
+               @oninput="OnSearchChanged" />
+
+        <button type="button" class="btn-add" @onclick="StartAdd">
+            + Add food
+        </button>
+    </div>
+
+    @if (!string.IsNullOrEmpty(statusMessage))
+    {
+        <div class="notice @(statusIsError ? "notice-error" : "notice-ok")">
+            @statusMessage
+        </div>
+    }
+
+    @if (showEditor)
+    {
+        <EditForm Model="@input" OnValidSubmit="@SaveFood" FormName="FoodEditor">
+
+            <DataAnnotationsValidator />
+
+            <div class="food-editor">
+                <h3>@(editingFoodId == null ? "Add a food" : "Edit food")</h3>
+
+                <div class="form">
+                    <label>Name:</label>
+                    <InputText @bind-Value="input.Name" />
+                </div>
+
+                <div class="form">
+                    <label>Calories:</label>
+                    <InputNumber @bind-Value="input.Calories" />
+                </div>
+
+                <div class="form">
+                    <label>Serving size:</label>
+                    <InputText @bind-Value="input.ServingSize"
+                               placeholder="e.g. 1 cup, 6 oz" />
+                </div>
+
+                <ValidationSummary />
+
+                <div class="editor-buttons">
+                    <button type="submit" class="btn-save">Save</button>
+
+                    <button type="button" class="btn-cancel" @onclick="CancelEdit">
+                        Cancel
+                    </button>
+                </div>
+            </div>
+        </EditForm>
+    }
+
+    @if (!foods.Any())
+    {
+        <p class="empty">
+            @EmptyMessage()
+        </p>
+    }
+    else
+    {
+        <div class="food-list">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Food</th>
+                        <th>Serving</th>
+                        <th>Calories</th>
+                        <th>Logged</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var food in foods)
+                    {
+                        <tr>
+                            <td class="food-name">
+                                @food.Name
+                                @if (food.CreatedByUserId == null)
+                                {
+                                    <span class="tag tag-shared">shared</span>
+                                }
+                                else
+                                {
+                                    <span class="tag tag-mine">yours</span>
+                                }
+                            </td>
+                            <td>@food.ServingSize</td>
+                            <td>@food.Calories cal</td>
+                            <td>@LogCountFor(food.FoodId)</td>
+                            <td class="row-actions">
+                                @if (food.CreatedByUserId == currentUser.UserId)
+                                {
+                                    <button type="button"
+                                            class="btn-small"
+                                            @onclick="() => StartEdit(food)">
+                                        Edit
+                                    </button>
+
+                                    <button type="button"
+                                            class="btn-small btn-danger"
+                                            disabled="@IsLogged(food.FoodId)"
+                                            title="@DeleteTooltip(food.FoodId)"
+                                            @onclick="() => DeleteFood(food.FoodId)">
+                                        Delete
+                                    </button>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+}
+
+@code {
+    private User? currentUser;
+
+    private List<Food> foods = new();
+    private Dictionary<int, int> logCounts = new();
+
+    private string searchTerm = "";
+
+    private bool showEditor;
+    private int? editingFoodId;
+
+    private string statusMessage = "";
+    private bool statusIsError;
+    private bool loadFailed;
+
+    private FoodInput input = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var authState =
+                await AuthenticationStateProvider.GetAuthenticationStateAsync();
+
+            currentUser =
+                await UserService.GetUserByPrincipalAsync(authState.User);
+
+            if (currentUser == null)
+            {
+                loadFailed = true;
+                return;
+            }
+
+            await ReloadAsync();
+        }
+        catch (Exception ex)
+        {
+            // Show a friendly message rather than dropping the circuit.
+            Console.WriteLine($"FOODS PAGE ERROR: {ex}");
+            loadFailed = true;
+        }
+    }
+
+    private async Task ReloadAsync()
+    {
+        if (currentUser == null)
+        {
+            return;
+        }
+
+        foods = await FoodService.SearchAsync(currentUser.UserId, searchTerm);
+        logCounts = await FoodService.GetLogCountsAsync(currentUser.UserId);
+    }
+
+    private async Task OnSearchChanged(ChangeEventArgs e)
+    {
+        searchTerm = e.Value?.ToString() ?? "";
+
+        await ReloadAsync();
+    }
+
+    private string EmptyMessage()
+    {
+        if (string.IsNullOrWhiteSpace(searchTerm))
+        {
+            return "No foods yet. Add your first one above.";
+        }
+
+        return $"Nothing matches '{searchTerm}'.";
+    }
+
+    private int LogCount(int foodId)
+    {
+        return logCounts.TryGetValue(foodId, out int count) ? count : 0;
+    }
+
+    private string LogCountFor(int foodId)
+    {
+        int count = LogCount(foodId);
+
+        if (count == 0)
+        {
+            return "—";
+        }
+
+        return count == 1 ? "1 time" : $"{count} times";
+    }
+
+    /// <summary>
+    /// A food that is still referenced by a log entry cannot be deleted, so the
+    /// button is disabled rather than offered and then refused.
+    /// </summary>
+    private bool IsLogged(int foodId)
+    {
+        return LogCount(foodId) > 0;
+    }
+
+    private string DeleteTooltip(int foodId)
+    {
+        int count = LogCount(foodId);
+
+        if (count == 0)
+        {
+            return "Delete this food";
+        }
+
+        string entries = count == 1 ? "entry" : "entries";
+
+        return $"Used in {count} log {entries}. " +
+               $"Remove it from the tracker before deleting.";
+    }
+
+    private void StartAdd()
+    {
+        editingFoodId = null;
+        input = new FoodInput();
+        showEditor = true;
+        statusMessage = "";
+    }
+
+    private void StartEdit(Food food)
+    {
+        editingFoodId = food.FoodId;
+
+        input = new FoodInput
+        {
+            Name = food.Name,
+            Calories = food.Calories,
+            ServingSize = food.ServingSize
+        };
+
+        showEditor = true;
+        statusMessage = "";
+    }
+
+    private void CancelEdit()
+    {
+        showEditor = false;
+        editingFoodId = null;
+        statusMessage = "";
+    }
+
+    private async Task SaveFood()
+    {
+        if (currentUser == null)
+        {
+            SetStatus("Could not find your account. Try signing in again.", true);
+            return;
+        }
+
+        var result = editingFoodId == null
+            ? await FoodService.AddAsync(
+                currentUser.UserId,
+                input.Name,
+                input.Calories,
+                input.ServingSize)
+            : await FoodService.UpdateAsync(
+                currentUser.UserId,
+                editingFoodId.Value,
+                input.Name,
+                input.Calories,
+                input.ServingSize);
+
+        SetStatus(result.Message, !result.Success);
+
+        if (result.Success)
+        {
+            showEditor = false;
+            editingFoodId = null;
+
+            await ReloadAsync();
+        }
+    }
+
+    private async Task DeleteFood(int foodId)
+    {
+        if (currentUser == null)
+        {
+            return;
+        }
+
+        var result = await FoodService.DeleteAsync(currentUser.UserId, foodId);
+
+        SetStatus(result.Message, !result.Success);
+
+        if (result.Success)
+        {
+            await ReloadAsync();
+        }
+    }
+
+    private void SetStatus(string message, bool isError)
+    {
+        statusMessage = message;
+        statusIsError = isError;
+    }
+
+    public class FoodInput
+    {
+        [Required(ErrorMessage = "Give the food a name.")]
+        [StringLength(100, ErrorMessage = "Keep the name under 100 characters.")]
+        public string Name { get; set; } = "";
+
+        [Range(0, 10000, ErrorMessage = "Enter calories between 0 and 10000.")]
+        public int Calories { get; set; }
+
+        [StringLength(50, ErrorMessage = "Keep the serving size short.")]
+        public string ServingSize { get; set; } = "";
+    }
+}

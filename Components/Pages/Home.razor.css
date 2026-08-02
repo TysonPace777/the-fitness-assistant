@@ -189,3 +189,148 @@
 .card-link a:hover {
     text-decoration: underline;
 }
+
+/* ---- Added: today's progress, weekly chart, notices ---- */
+
+.notice {
+    padding: 0.65rem 0.9rem;
+    border-radius: 6px;
+    margin-bottom: 1rem;
+}
+
+.notice-error {
+    background-color: #fdecec;
+    color: #7f1d1d;
+    border: 1px solid #e59a9a;
+}
+
+.report-status {
+    color: #7f1d1d;
+    margin-top: 0.5rem;
+}
+
+/* Today card */
+
+.today-card {
+    margin-bottom: 1.25rem;
+}
+
+.today-value {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: #052767;
+    margin-bottom: 0.5rem;
+}
+
+.today-value span {
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: #6b7280;
+}
+
+.progress-track {
+    width: 100%;
+    height: 14px;
+    background-color: #e5e7eb;
+    border-radius: 999px;
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    background-color: #1056d8;
+    border-radius: 999px;
+    transition: width .3s ease;
+}
+
+.progress-fill.over {
+    background-color: #b32121;
+}
+
+.today-note {
+    margin-top: 0.5rem;
+    color: #4b5563;
+    font-size: 0.95rem;
+}
+
+.today-note.over {
+    color: #b32121;
+    font-weight: 600;
+}
+
+/* Weekly chart */
+
+.week-card {
+    margin-bottom: 1.25rem;
+}
+
+.week-bars {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 0.5rem;
+    height: 150px;
+    margin-top: 0.5rem;
+}
+
+.week-day {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    height: 100%;
+}
+
+.week-bar-track {
+    flex: 1;
+    width: 100%;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+}
+
+.week-bar {
+    width: 70%;
+    max-width: 40px;
+    background-color: #1056d8;
+    border-radius: 4px 4px 0 0;
+    min-height: 2px;
+}
+
+.week-label {
+    font-size: 0.75rem;
+    color: #4b5563;
+    margin-top: 0.35rem;
+}
+
+.week-cal {
+    font-size: 0.7rem;
+    color: #6b7280;
+}
+
+.week-note {
+    margin-top: 0.75rem;
+    color: #4b5563;
+    font-size: 0.95rem;
+}
+
+/* Recent logs: servings column */
+
+.log-servings {
+    color: #6b7280;
+    font-size: 0.9rem;
+}
+
+.inspiration {
+    margin-top: 2rem;
+}
+
+@media screen and (max-width: 640px) {
+    .week-bars {
+        height: 120px;
+    }
+
+    .week-cal {
+        display: none;
+    }
+}

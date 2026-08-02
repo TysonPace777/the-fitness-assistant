@@ -96,7 +96,7 @@ public class DemoDataSeeder
                 UserId = user.UserId,
                 FoodId = foods[0].FoodId,
                 LogDate = DateTime.UtcNow,
-                MealType = "Dinner",
+                MealType = MealTypes.Dinner,
                 Servings = 1
             },
 
@@ -105,7 +105,7 @@ public class DemoDataSeeder
                 UserId = user.UserId,
                 FoodId = foods[1].FoodId,
                 LogDate = DateTime.UtcNow,
-                MealType = "Lunch",
+                MealType = MealTypes.Lunch,
                 Servings = 1
             },
 
@@ -114,7 +114,7 @@ public class DemoDataSeeder
                 UserId = user.UserId,
                 FoodId = foods[2].FoodId,
                 LogDate = DateTime.UtcNow,
-                MealType = "Snack",
+                MealType = MealTypes.Snacks,
                 Servings = 1
             }
         };

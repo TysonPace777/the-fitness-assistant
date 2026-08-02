@@ -1,4 +1,4 @@
-﻿@page "/"
+@page "/"
 
 @rendermode InteractiveServer
 
@@ -19,7 +19,14 @@
 <div class="dashboard">
     <h1 class="dashboard-title">Fitness Dashboard</h1>
 
-    @if (currentUser == null)
+    @if (loadFailed)
+    {
+        <div class="notice notice-error">
+            We could not load your dashboard right now. Refresh the page, and
+            if it keeps happening try signing out and back in.
+        </div>
+    }
+    else if (currentUser == null)
     {
         <p class="loading">Loading...</p>
     }
@@ -64,6 +71,81 @@
             </section>
         </div>
 
+        <section class="card today-card">
+            <h3>Today</h3>
+
+            <p class="today-value">
+                @todayCalories <span>cal logged</span>
+            </p>
+
+            @if (goal != null)
+            {
+                <div class="progress-track"
+                     role="progressbar"
+                     aria-valuenow="@NutritionMath.PercentOfGoal(todayCalories, goal.DailyCalories)"
+                     aria-valuemin="0"
+                     aria-valuemax="100">
+                    <div class="progress-fill @(remaining < 0 ? "over" : "")"
+                         style="width:@(NutritionMath.PercentOfGoal(todayCalories, goal.DailyCalories))%"></div>
+                </div>
+
+                @if (remaining >= 0)
+                {
+                    <p class="today-note">
+                        @remaining cal left before you hit your goal.
+                    </p>
+                }
+                else
+                {
+                    <p class="today-note over">
+                        @Math.Abs(remaining) cal over your goal.
+                    </p>
+                }
+            }
+            else
+            {
+                <p class="empty">
+                    Set a goal on the <a href="calculator">calculator</a> to
+                    track progress here.
+                </p>
+            }
+        </section>
+
+        <section class="card week-card">
+            <h3>Last 7 Days</h3>
+
+            @if (weeklySummary.Any(d => d.Calories > 0))
+            {
+                <div class="week-bars">
+                    @foreach (var day in weeklySummary)
+                    {
+                        <div class="week-day">
+                            <div class="week-bar-track">
+                                <div class="week-bar"
+                                     style="height:@BarHeight(day.Calories)%"
+                                     title="@day.Calories cal"></div>
+                            </div>
+                            <span class="week-label">@day.DayLabel</span>
+                            <span class="week-cal">@day.Calories</span>
+                        </div>
+                    }
+                </div>
+
+                <p class="week-note">
+                    Daily average: @weeklyAverage cal across
+                    @weeklySummary.Count(d => d.Calories > 0) logged
+                    @(weeklySummary.Count(d => d.Calories > 0) == 1 ? "day" : "days").
+                </p>
+            }
+            else
+            {
+                <p class="empty">
+                    Nothing logged this week. Add meals on the
+                    <a href="tracker">tracker</a>.
+                </p>
+            }
+        </section>
+
         <section class="card logs-card">
             <h3>Recent Food Logs</h3>
             @if (foodLogs.Any())
@@ -73,9 +155,10 @@
                     {
                         <li class="food-log">
                             <span class="log-date">@log.LogDate.ToShortDateString()</span>
-                            <span class="log-meal">@log.MealType</span>
+                            <span class="log-meal">@MealTypes.ToDisplayName(log.MealType)</span>
                             <span class="log-food">@log.Food?.Name</span>
-                            <span class="log-cal">@log.Food?.Calories cal</span>
+                            <span class="log-servings">@NutritionMath.FormatServings(log.Servings)</span>
+                            <span class="log-cal">@NutritionMath.CaloriesFor(log) cal</span>
                         </li>
                     }
                 </ul>
@@ -85,12 +168,18 @@
                 <p class="empty">No food logs yet.</p>
             }
         </section>
-    }
-    <button class="btn btn-primary" @onclick="GenerateReport">
-        Download PDF Report
-    </button>
 
-    <div>
+        <button class="btn btn-primary" @onclick="GenerateReport">
+            Download PDF Report
+        </button>
+
+        @if (!string.IsNullOrEmpty(reportMessage))
+        {
+            <p class="report-status">@reportMessage</p>
+        }
+    }
+
+    <div class="inspiration">
         <h3>Daily Inspiration</h3>
 
         <p class="quote">
@@ -99,83 +188,170 @@
     </div>
 </div>
 
-
-
 @code {
 
     private User? currentUser;
     private CalorieGoal? goal;
     private List<FoodLogEntry> foodLogs = new();
 
+    private List<FoodLogEntry> weekLogs = new();
+    private List<DaySummary> weeklySummary = new();
+
+    private int todayCalories;
+    private int remaining;
+    private int weeklyAverage;
+
+    private bool loadFailed;
+    private string reportMessage = "";
+
+    private string quote = "";
 
     protected override async Task OnInitializedAsync()
     {
+        // Picked once per page load so it does not change on every re-render.
+        quote = QuoteService.GetRandomQuote();
+
         try
         {
             var authState =
                 await AuthenticationStateProvider.GetAuthenticationStateAsync();
 
-            Console.WriteLine($"Authenticated: {authState.User.Identity?.IsAuthenticated}");
-            Console.WriteLine($"Email: {authState.User.Identity?.Name}");
-
             currentUser =
                 await UserService.GetUserByPrincipalAsync(authState.User);
 
-            Console.WriteLine($"Database user found: {currentUser?.DisplayName}");
-
-            if (currentUser != null)
+            if (currentUser == null)
             {
-                goal =
-                    await DbContext.CalorieGoals
-                        .FirstOrDefaultAsync(
-                            c => c.UserId == currentUser.UserId);
-
-                Console.WriteLine($"Goal found: {goal != null}");
-
-                foodLogs =
-                    await DbContext.FoodLogEntries
-                        .Include(f => f.Food)
-                        .Where(f => f.UserId == currentUser.UserId)
-                        .OrderByDescending(f => f.LogDate)
-                        .Take(5)
-                        .ToListAsync();
-
-                Console.WriteLine($"Food logs: {foodLogs.Count}");
+                return;
             }
+
+            goal =
+                await DbContext.CalorieGoals
+                    .FirstOrDefaultAsync(
+                        c => c.UserId == currentUser.UserId);
+
+            foodLogs =
+                await DbContext.FoodLogEntries
+                    .Include(f => f.Food)
+                    .Where(f => f.UserId == currentUser.UserId)
+                    .OrderByDescending(f => f.LogDate)
+                    .Take(5)
+                    .ToListAsync();
+
+            await LoadWeekAsync();
         }
         catch (Exception ex)
         {
-            Console.WriteLine("HOME PAGE ERROR:");
-            Console.WriteLine(ex.ToString());
-            throw;
+            // Previously this rethrew and took the whole circuit down.
+            Console.WriteLine($"HOME PAGE ERROR: {ex}");
+            loadFailed = true;
         }
+    }
+
+    /// <summary>
+    /// Pulls the last seven days of entries once, then does the grouping in
+    /// memory so today's total and the weekly chart share a single query.
+    /// </summary>
+    private async Task LoadWeekAsync()
+    {
+        if (currentUser == null)
+        {
+            return;
+        }
+
+        // Days are the user's local days, but LogDate is stored as UTC, so the
+        // query cutoff is converted back to UTC before it hits Postgres.
+        DateTime today = DateTime.Now.Date;
+        DateTime weekStart = today.AddDays(-6);
+
+        DateTime weekStartUtc = weekStart.ToUniversalTime();
+
+        weekLogs =
+            await DbContext.FoodLogEntries
+                .Include(f => f.Food)
+                .Where(f => f.UserId == currentUser.UserId &&
+                            f.LogDate >= weekStartUtc)
+                .ToListAsync();
+
+        weeklySummary = new List<DaySummary>();
+
+        for (int offset = 0; offset < 7; offset++)
+        {
+            DateTime day = weekStart.AddDays(offset);
+
+            var entriesForDay = weekLogs
+                .Where(f => NutritionMath.LocalDay(f) == day)
+                .ToList();
+
+            weeklySummary.Add(new DaySummary
+            {
+                Date = day,
+                Calories = NutritionMath.TotalCalories(entriesForDay),
+                EntryCount = entriesForDay.Count
+            });
+        }
+
+        todayCalories = NutritionMath.CaloriesForDay(weekLogs, today);
+
+        remaining = NutritionMath.RemainingCalories(
+            todayCalories,
+            goal?.DailyCalories);
+
+        var loggedDays = weeklySummary.Where(d => d.Calories > 0).ToList();
+
+        weeklyAverage = loggedDays.Any()
+            ? (int)Math.Round(loggedDays.Average(d => d.Calories))
+            : 0;
+    }
+
+    /// <summary>
+    /// Bar height as a percentage of the busiest day, with a small floor so a
+    /// tiny day is still visible.
+    /// </summary>
+    private int BarHeight(int calories)
+    {
+        int max = weeklySummary.Any() ? weeklySummary.Max(d => d.Calories) : 0;
+
+        if (max <= 0 || calories <= 0)
+        {
+            return 0;
+        }
+
+        return Math.Max(4, (int)Math.Round(calories * 100.0 / max));
     }
 
     private async Task GenerateReport()
     {
-        var report = new DashboardReport
+        if (currentUser == null)
         {
-            User = currentUser!,
-            CalorieGoal = goal,
-            RecentFoodLogs = foodLogs
-        };
+            reportMessage = "Could not find your account. Try signing in again.";
+            return;
+        }
 
-        var pdfBytes = ReportPdfService.GeneratePdf(report);
+        try
+        {
+            var report = new DashboardReport
+            {
+                User = currentUser,
+                CalorieGoal = goal,
+                RecentFoodLogs = foodLogs,
+                TodayCalories = todayCalories,
+                WeeklySummary = weeklySummary
+            };
 
-        var base64 = Convert.ToBase64String(pdfBytes);
+            var pdfBytes = ReportPdfService.GeneratePdf(report);
 
-        var fileName = $"Fitness_Report_{DateTime.Now:yyyy-MM-dd_HHmmss}.pdf";
+            var base64 = Convert.ToBase64String(pdfBytes);
 
-        await JS.InvokeVoidAsync(
-            "downloadFile",
-            fileName,
-            base64);
-    }
+            var fileName = $"Fitness_Report_{DateTime.Now:yyyy-MM-dd_HHmmss}.pdf";
 
-    private string quote = "";
+            await JS.InvokeVoidAsync("downloadFile", fileName, base64);
 
-    protected override void OnInitialized()
-    {
-        quote = QuoteService.GetRandomQuote();
+            reportMessage = "";
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"PDF REPORT ERROR: {ex}");
+            reportMessage = "The report could not be generated. Please try again.";
+        }
     }
 }

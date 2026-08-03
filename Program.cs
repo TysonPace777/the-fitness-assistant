@@ -148,18 +148,8 @@ app.MapGet("/auth-success", async (
 
 app.MapGet("/api/status/{userId}", async (
     int userId,
-    HttpContext context,
-    DeviceApiKeyService apiKeyService,
     DailyTaskService dailyTaskService) =>
 {
-    var apiKey =
-        context.Request.Headers["X-API-Key"].FirstOrDefault();
-
-    if (!apiKeyService.IsValid(apiKey))
-    {
-        return Results.Unauthorized();
-    }
-
     var status =
         await dailyTaskService.GetProgressStatusAsync(userId);
 

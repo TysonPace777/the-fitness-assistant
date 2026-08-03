@@ -13,6 +13,8 @@ using Microsoft.AspNetCore.HttpOverrides;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// builder.WebHost.UseUrls("http://0.0.0.0:5011");
+
 QuestPDF.Settings.License = LicenseType.Community;
 
 builder.Services.Configure<ForwardedHeadersOptions>(options =>
@@ -51,6 +53,9 @@ builder.Services.AddSingleton<QuoteService>();
 // This feature allows the user to create daily tasks and tracks them and allows the LED display to return a result on the status of the tasks, meaning Green for all tasks done, Yellow for some tasks completed and red for no tasks completed.
 builder.Services.AddScoped<DailyTaskService>();
 
+// This service provides a API key for my pi device so that it can access the users task status for the LED circuit hardware.
+builder.Services.AddScoped<DeviceApiKeyService>();
+
 // Add services to the container.
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
@@ -71,7 +76,7 @@ builder.Services
     options.Cookie.HttpOnly = true;
     options.Cookie.SameSite = SameSiteMode.None;
     options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
-    })
+})
     .AddGoogle(options =>
     {
         options.ClientId =
@@ -94,7 +99,7 @@ if (!app.Environment.IsDevelopment())
 
 app.UseForwardedHeaders();
 
-app.UseHttpsRedirection();
+// app.UseHttpsRedirection();
 
 app.MapStaticAssets();
 
@@ -139,6 +144,26 @@ app.MapGet("/auth-success", async (
     await demoDataSeeder.SeedForUserAsync(user);
 
     return Results.Redirect("/");
+});
+
+app.MapGet("/api/status/{userId}", async (
+    int userId,
+    HttpContext context,
+    DeviceApiKeyService apiKeyService,
+    DailyTaskService dailyTaskService) =>
+{
+    var apiKey =
+        context.Request.Headers["X-API-Key"].FirstOrDefault();
+
+    if (!apiKeyService.IsValid(apiKey))
+    {
+        return Results.Unauthorized();
+    }
+
+    var status =
+        await dailyTaskService.GetProgressStatusAsync(userId);
+
+    return Results.Ok(status);
 });
 
 app.MapRazorComponents<App>()

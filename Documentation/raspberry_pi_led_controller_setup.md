@@ -72,6 +72,8 @@ main.py
 task_status_led.py
 test_api.py
 venv
+
+
 3. Activate Python Virtual Environment
 
 Activate the project environment:
@@ -81,6 +83,8 @@ source venv/bin/activate
 The terminal should now show:
 
 (venv) holly@holly-pi:~/fitness_led $
+
+
 4. Verify GPIO Access
 
 Optional troubleshooting command:
@@ -90,6 +94,8 @@ python3 -c "import RPi.GPIO; print('GPIO works')"
 Expected:
 
 GPIO works
+
+
 5. Run LED Controller Program
 
 Start the LED controller:

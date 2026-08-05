@@ -40,7 +40,7 @@
                         <li class="food-delete">
                             @entry.Food.Name (@entry.Servings serving(s))
 
-                            <button @onclick="() => DeleteFood(entry)">
+                            <button class="trash" @onclick="() => DeleteFood(entry)">
                                 🗑️
                             </button>
                         </li>
@@ -64,7 +64,7 @@
                             <li class="food-delete">
                                 @entry.Food.Name (@entry.Servings serving(s))
 
-                                <button @onclick="() => DeleteFood(entry)">
+                                <button class="trash" @onclick="() => DeleteFood(entry)">
                                     🗑️
                                 </button>
                             </li>
@@ -76,7 +76,7 @@
                         Add Food
                     </button>
                 </td>
-                <td>(Calorie Total)</td>
+                <td>@GetMealCalories("Lunch")</td>
             </tr>
             <tr>
                 <th>Dinner</th>
@@ -87,7 +87,7 @@
                             <li class="food-delete">
                                 @entry.Food.Name (@entry.Servings serving(s))
 
-                                <button @onclick="() => DeleteFood(entry)">
+                                <button class="trash" @onclick="() => DeleteFood(entry)">
                                     🗑️
                                 </button>
                             </li>
@@ -99,7 +99,7 @@
                         Add Food
                     </button>
                 </td>
-                <td>(Calorie Total)</td>
+                <td>@GetMealCalories("Dinner")</td>
             </tr>
             <tr>
                 <th>Snacks</th>
@@ -110,7 +110,7 @@
                             <li class="food-delete">
                                 @entry.Food.Name (@entry.Servings serving(s))
 
-                                <button @onclick="() => DeleteFood(entry)">
+                                <button class="trash" @onclick="() => DeleteFood(entry)">
                                     🗑️
                                 </button>
                             </li>
@@ -122,7 +122,7 @@
                         Add Food
                     </button>
                 </td>
-                <td>(Calorie Total)</td>
+                <td>@GetMealCalories("Snacks")</td>
             </tr>
         </tbody>
     </table>
@@ -165,12 +165,39 @@
                     @food.Calories calories
                     (@food.ServingSize)
 
-                    <button @onclick="() => SelectFood(food)">
+                    <button class="add-button" @onclick="() => SelectFood(food)">
                         Add
                     </button>
                 </li>
             }
         </ul>
+    }
+
+    <div class="new-food-toggle">
+        <button @onclick="ToggleNewFoodForm">
+            @(showNewFoodForm ? "Cancel" : "Can't find it? Add a new food")
+        </button>
+    </div>
+
+    @if (showNewFoodForm)
+    {
+        <EditForm Model="newFood" OnValidSubmit="SaveNewFood">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+
+            <div class="new-food-form">
+                <label>Name</label>
+                <InputText @bind-Value="newFood.Name" />
+
+                <label>Calories</label>
+                <InputNumber @bind-Value="newFood.Calories" />
+
+                <label>Serving Size</label>
+                <InputText @bind-Value="newFood.ServingSize" placeholder="e.g. 1 cup, 100g" />
+
+                <button type="submit">Save Food</button>
+            </div>
+        </EditForm>
     }
 
     @if (selectedFood != null)
@@ -202,6 +229,32 @@
     private double servings = 1;
 
     private DateTime selectedDate = DateTime.UtcNow.Date;
+
+    private bool showNewFoodForm = false;
+    private Food newFood = new();
+
+    private void ToggleNewFoodForm()
+    {
+        showNewFoodForm = !showNewFoodForm;
+        newFood = new Food();
+    }
+
+    private async Task SaveNewFood()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var currentUser = await UserService.EnsureUserExistsAsync(authState.User);
+
+        newFood.CreatedByUserId = currentUser.UserId;
+
+        Context.Foods.Add(newFood);
+        await Context.SaveChangesAsync();
+
+        // Immediately select it so the user can log servings right away
+        SelectFood(newFood);
+
+        showNewFoodForm = false;
+        newFood = new Food();
+    }
 
     private async Task PreviousDay()
     {

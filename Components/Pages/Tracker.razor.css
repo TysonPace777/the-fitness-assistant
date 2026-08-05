@@ -96,12 +96,44 @@ li {
     text-align: center;
 }
 
+.food-form button {
+    border: none;
+    border-radius: 5px;
+    background-color: transparent;
+    color: darkred;
+    font-weight: 700;
+    text-decoration: underline;
+}
+
 .results {
     text-align: center;
     text-decoration: underline;
 }
 
+.add-button, .search button {
+    border: none;
+    border-radius: 5px;
+    background-color: #1056d8;
+    color: white;
+}
+
 .bottom {
     justify-self: center;
     padding-top: 15px;
+}
+
+.trash {
+    background-color: darkred;
+}
+
+.new-food-form, .new-food-toggle {
+    justify-self: center;
+    padding: 10px;
+}
+
+.new-food-toggle button {
+    border: none;
+    background-color: transparent;
+    text-decoration: underline;
+    cursor: pointer;
 }

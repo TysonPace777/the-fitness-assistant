@@ -44,6 +44,9 @@ builder.Services.AddScoped<UserService>();
 // This Seeder service auto fills the users account with data for demo purposes
 builder.Services.AddScoped<DemoDataSeeder>();
 
+// Backs the /foods library page - search, create and list foods.
+builder.Services.AddScoped<FoodService>();
+
 // This helps create the PDF for the dashboard report generator
 builder.Services.AddScoped<ReportPdfService>();
 

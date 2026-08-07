@@ -1,0 +1,28 @@
+.notfound {
+    max-width: 600px;
+    margin: 2rem auto;
+    text-align: center;
+}
+
+.notfound h1 {
+    color: #052767;
+}
+
+.notfound p {
+    color: #4b5563;
+}
+
+.notfound-links {
+    list-style: none;
+    padding: 0;
+    margin-top: 1.5rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    justify-content: center;
+}
+
+.notfound-links a {
+    color: #1056d8;
+    font-weight: 600;
+}

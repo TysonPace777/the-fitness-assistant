@@ -146,10 +146,24 @@ app.MapGet("/auth-success", async (
     return Results.Redirect("/");
 });
 
+// Read only endpoint used by the Raspberry Pi LED controller.
+// It is not behind Google login, so it is protected by a device API key
+// sent in the X-API-Key header.
 app.MapGet("/api/status/{userId}", async (
     int userId,
-    DailyTaskService dailyTaskService) =>
+    HttpContext context,
+    DailyTaskService dailyTaskService,
+    DeviceApiKeyService deviceApiKeyService) =>
 {
+    var apiKey = context.Request.Headers["X-API-Key"].FirstOrDefault();
+
+    if (!deviceApiKeyService.IsValid(apiKey))
+    {
+        Console.WriteLine($"STATUS ENDPOINT REJECTED for user {userId}");
+
+        return Results.Unauthorized();
+    }
+
     var status =
         await dailyTaskService.GetProgressStatusAsync(userId);
 

@@ -188,15 +188,12 @@
             <div class="new-food-form">
                 <label>Name</label>
                 <InputText @bind-Value="newFood.Name" />
-                <ValidationMessage For="() => newFood.Name" />
 
                 <label>Calories</label>
                 <InputNumber @bind-Value="newFood.Calories" />
-                <ValidationMessage For="() => newFood.Calories" />
 
                 <label>Serving Size</label>
                 <InputText @bind-Value="newFood.ServingSize" placeholder="e.g. 1 cup, 100g" />
-                <ValidationMessage For="() => newFood.ServingSize" />
 
                 <button type="submit">Save Food</button>
             </div>

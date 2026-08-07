@@ -252,31 +252,6 @@ dotnet ef database update
 
 ---
 
-# Device API Key (Raspberry Pi LED Display)
-
-The `/api/status/{userId}` endpoint is not behind Google login, because the
-Raspberry Pi cannot log in. It is protected by a device API key instead.
-
-Set the key locally:
-
-```bash
-dotnet user-secrets set "DeviceApi:ApiKey" "my-test-pi-key-12345"
-```
-
-On Render, add an environment variable:
-
-```
-DeviceApi__ApiKey = my-test-pi-key-12345
-```
-
-The Pi scripts in `FitnessLED_display/` send this value in the `X-API-Key`
-header. If the key is missing or wrong the endpoint returns 401 and the
-scripts print a message instead of crashing.
-
-If no key is configured at all, the endpoint rejects every request.
-
----
-
 # Production Notes
 
 Local development:

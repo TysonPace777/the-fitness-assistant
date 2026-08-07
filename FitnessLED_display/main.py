@@ -19,11 +19,6 @@ def get_status():
     print("API RESPONSE:")
     print(response.text)
 
-    # 401 means the API key is missing or wrong.
-    if response.status_code != 200:
-        print("API REJECTED THE REQUEST:", response.status_code)
-        return -1
-
     return int(response.text)
 
 

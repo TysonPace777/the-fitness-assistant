@@ -13,7 +13,7 @@ using Microsoft.AspNetCore.HttpOverrides;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.WebHost.UseUrls("http://0.0.0.0:5011");
+// builder.WebHost.UseUrls("http://0.0.0.0:5011");
 
 QuestPDF.Settings.License = LicenseType.Community;
 

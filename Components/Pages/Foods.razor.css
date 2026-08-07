@@ -1,0 +1,266 @@
+/* Foods.razor.css — scoped styles for the food library.
+   Colours match Home/Calculator/Profile so the app looks like one app. */
+
+.page-intro {
+    color: #4b5563;
+    margin-bottom: 1.25rem;
+}
+
+.loading,
+.empty {
+    color: #6b7280;
+    font-style: italic;
+}
+
+.food-toolbar {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+}
+
+.food-search {
+    flex: 1;
+    min-width: 200px;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    font-size: 1rem;
+}
+
+.food-search:focus {
+    outline: 2px solid #1056d8;
+    outline-offset: 1px;
+}
+
+.btn-add {
+    border: none;
+    background-color: #052767;
+    color: #fff;
+    border-radius: 6px;
+    padding: 0.5rem 1rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.btn-add:hover {
+    background-color: #1056d8;
+}
+
+/* Status / error banners */
+
+.notice {
+    padding: 0.65rem 0.9rem;
+    border-radius: 6px;
+    margin-bottom: 1rem;
+}
+
+.notice-ok {
+    background-color: #e7f6ec;
+    color: #14532d;
+    border: 1px solid #86c9a0;
+}
+
+.notice-error {
+    background-color: #fdecec;
+    color: #7f1d1d;
+    border: 1px solid #e59a9a;
+}
+
+/* Add / edit form */
+
+.food-editor {
+    max-width: 500px;
+    padding: 1.25rem;
+    border-radius: 10px;
+    border: 1px solid #d7dce5;
+    background: rgba(255, 255, 255, .05);
+    margin-bottom: 1.5rem;
+}
+
+.food-editor h3 {
+    margin-top: 0;
+    color: #052767;
+    font-size: 1.15rem;
+}
+
+.form {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: .75rem;
+}
+
+.form label {
+    width: 130px;
+    font-weight: 600;
+}
+
+.form input {
+    flex: 1;
+    padding: .45rem;
+    border-radius: 6px;
+    border: 1px solid #cbd5e1;
+}
+
+.editor-buttons {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 1rem;
+}
+
+.btn-save {
+    border: none;
+    background-color: #1056d8;
+    color: #fff;
+    border-radius: 6px;
+    padding: 0.5rem 1.25rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.btn-cancel {
+    border: 1px solid #9ca3af;
+    background: transparent;
+    color: #374151;
+    border-radius: 6px;
+    padding: 0.5rem 1.25rem;
+    cursor: pointer;
+}
+
+/* Food table */
+
+.food-list table {
+    border-collapse: collapse;
+    width: 100%;
+}
+
+.food-list th {
+    background-color: #052767;
+    color: #fff;
+    text-align: left;
+    padding: 0.6rem 0.75rem;
+    font-size: 0.9rem;
+}
+
+.food-list td {
+    border-bottom: 1px solid #e5e7eb;
+    padding: 0.6rem 0.75rem;
+    vertical-align: middle;
+}
+
+.food-name {
+    font-weight: 600;
+}
+
+.tag {
+    display: inline-block;
+    margin-left: 0.5rem;
+    padding: 0.1rem 0.45rem;
+    border-radius: 999px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+
+.tag-shared {
+    background-color: #e5e7eb;
+    color: #4b5563;
+}
+
+.tag-mine {
+    background-color: #dbeafe;
+    color: #1e40af;
+}
+
+.row-actions {
+    white-space: nowrap;
+    text-align: right;
+}
+
+.btn-small {
+    border: 1px solid #1056d8;
+    background: transparent;
+    color: #1056d8;
+    border-radius: 5px;
+    padding: 0.25rem 0.6rem;
+    font-size: 0.85rem;
+    cursor: pointer;
+    margin-left: 0.35rem;
+}
+
+.btn-small:hover {
+    background-color: #1056d8;
+    color: #fff;
+}
+
+.btn-danger {
+    border-color: #b32121;
+    color: #b32121;
+}
+
+.btn-danger:hover {
+    background-color: #b32121;
+    color: #fff;
+}
+
+/* Small screens: let the table reflow instead of scrolling sideways */
+
+@media screen and (max-width: 640px) {
+    .food-list thead {
+        display: none;
+    }
+
+    .food-list table,
+    .food-list tbody,
+    .food-list tr,
+    .food-list td {
+        display: block;
+        width: 100%;
+    }
+
+    .food-list tr {
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        margin-bottom: 0.75rem;
+        padding: 0.4rem 0.2rem;
+    }
+
+    .food-list td {
+        border-bottom: none;
+        padding: 0.3rem 0.75rem;
+    }
+
+    .row-actions {
+        text-align: left;
+    }
+
+    .btn-small {
+        margin-left: 0;
+        margin-right: 0.35rem;
+    }
+
+    .form {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.35rem;
+    }
+
+    .form label {
+        width: auto;
+    }
+}
+
+/* Delete is disabled while a food is still referenced by a log entry. */
+
+.btn-small:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+
+.btn-danger:disabled:hover {
+    background: transparent;
+    color: #b32121;
+}
